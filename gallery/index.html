@@ -3,7 +3,8 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Галерея</title>
     <link rel="manifest" href="gallery-manifest.json">
     <link rel="icon" href="gallery-icon-192.png">
@@ -26,72 +27,562 @@
             --ff: 'Segoe UI', Roboto, system-ui, sans-serif;
         }
 
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
-        html, body { margin: 0; height: 100%; background: var(--bg); color: var(--txt); font-family: var(--ff); overflow: hidden; }
-        button { font-family: inherit; cursor: pointer; border: none; background: none; }
-        .hidden { display: none !important; }
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
 
-        #app { display: flex; flex-direction: column; height: 100vh; height: 100dvh; }
+        html,
+        body {
+            margin: 0;
+            height: 100%;
+            background: var(--bg);
+            color: var(--txt);
+            font-family: var(--ff);
+            overflow: hidden;
+        }
 
-        .topbar { display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: var(--bg2); border-bottom: 1px solid var(--line); flex: 0 0 auto; }
-        .topbar h1 { font-size: 19px; font-weight: 700; margin: 0; flex: 1; }
-        .icon-btn { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; color: var(--txt-dim); }
-        .icon-btn:active { background: var(--bg3); }
-        .text-btn { color: var(--accent); font-size: 15px; font-weight: 600; padding: 8px 10px; border-radius: 10px; }
-        .text-btn:active { background: var(--bg3); }
+        button {
+            font-family: inherit;
+            cursor: pointer;
+            border: none;
+            background: none;
+        }
 
-        .tabs { display: flex; gap: 4px; padding: 6px 14px; background: var(--bg2); border-bottom: 1px solid var(--line); flex: 0 0 auto; }
-        .tab { flex: 1; text-align: center; padding: 9px 0; font-size: 14px; font-weight: 600; color: var(--txt-dim); border-radius: 10px; }
-        .tab.active { color: var(--accent); background: rgba(59,130,246,.1); }
+        .hidden {
+            display: none !important;
+        }
 
-        .content { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+        #app {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            height: 100dvh;
+        }
 
-        .date-section { padding: 14px 12px 2px; }
-        .date-head { font-size: 14px; font-weight: 700; color: var(--txt); padding: 0 4px 8px; }
-        .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3px; }
-        .cell { position: relative; aspect-ratio: 1/1; background: var(--bg3); border-radius: 6px; overflow: hidden; }
-        .cell img, .cell video { width: 100%; height: 100%; object-fit: cover; display: block; }
-        .cell .dur { position: absolute; right: 4px; bottom: 4px; background: rgba(0,0,0,.55); color: #fff; font-size: 10px; padding: 1px 5px; border-radius: 6px; }
-        .cell .vidmark { position: absolute; left: 4px; bottom: 4px; color: #fff; font-size: 13px; text-shadow: 0 1px 3px rgba(0,0,0,.8); }
-        .cell .check { position: absolute; top: 5px; right: 5px; width: 22px; height: 22px; border-radius: 50%; border: 2px solid #fff; background: rgba(0,0,0,.25); box-shadow: 0 0 2px rgba(0,0,0,.4); }
-        .cell.selected .check { background: var(--accent); border-color: var(--accent); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; }
-        .cell.selected::after { content: ''; position: absolute; inset: 0; background: rgba(59,130,246,.22); border: 2px solid var(--accent); border-radius: 6px; }
-        .cell.selected img, .cell.selected video { transform: scale(.92); border-radius: 4px; }
+        .topbar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            background: var(--bg2);
+            border-bottom: 1px solid var(--line);
+            flex: 0 0 auto;
+        }
 
-        .albums-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; padding: 14px; }
-        .album-card { border-radius: 14px; overflow: hidden; background: var(--bg2); box-shadow: 0 1px 4px rgba(0,0,0,.06); }
-        .album-cover { aspect-ratio: 1/1; background: var(--bg3); }
-        .album-cover img, .album-cover video { width: 100%; height: 100%; object-fit: cover; }
-        .album-meta { padding: 8px 10px 10px; }
-        .album-meta .name { font-size: 13.5px; font-weight: 600; }
-        .album-meta .count { font-size: 11.5px; color: var(--txt-faint); }
+        .topbar h1 {
+            font-size: 19px;
+            font-weight: 700;
+            margin: 0;
+            flex: 1;
+        }
 
-        .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 30px; text-align: center; gap: 14px; }
-        .empty-state .ic { font-size: 52px; }
-        .empty-state h2 { font-size: 18px; margin: 0; }
-        .empty-state p { font-size: 13.5px; color: var(--txt-dim); line-height: 1.5; margin: 0; max-width: 320px; }
-        .big-btn { background: var(--accent); color: #fff; padding: 0 28px; height: 48px; border-radius: 24px; font-size: 15px; font-weight: 600; }
-        .big-btn:active { opacity: .85; }
+        .icon-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: var(--txt-dim);
+        }
 
-        .scan-status { display: flex; align-items: center; gap: 10px; padding: 10px 16px; font-size: 12.5px; color: var(--txt-dim); }
-        .spinner { width: 15px; height: 15px; border: 2px solid var(--line); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
+        .icon-btn:active {
+            background: var(--bg3);
+        }
 
-        .selectbar { display: none; align-items: center; gap: 10px; padding: 10px 14px; background: var(--bg2); border-top: 1px solid var(--line); flex: 0 0 auto; }
-        .selectbar.show { display: flex; }
-        .selectbar .count { flex: 1; font-size: 14px; font-weight: 600; }
+        .text-btn {
+            color: var(--accent);
+            font-size: 15px;
+            font-weight: 600;
+            padding: 8px 10px;
+            border-radius: 10px;
+        }
+
+        .text-btn:active {
+            background: var(--bg3);
+        }
+
+        .tabs {
+            display: flex;
+            gap: 4px;
+            padding: 6px 14px;
+            background: var(--bg2);
+            border-bottom: 1px solid var(--line);
+            flex: 0 0 auto;
+        }
+
+        .tab {
+            flex: 1;
+            text-align: center;
+            padding: 9px 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--txt-dim);
+            border-radius: 10px;
+            white-space: nowrap;
+        }
+
+        .tab.active {
+            color: var(--accent);
+            background: rgba(59, 130, 246, .1);
+        }
+
+        .searchbar {
+            display: none;
+            padding: 8px 14px;
+            background: var(--bg2);
+            border-bottom: 1px solid var(--line);
+            flex: 0 0 auto;
+        }
+
+        .searchbar.show {
+            display: block;
+        }
+
+        .searchbar input {
+            width: 100%;
+            height: 40px;
+            border-radius: 12px;
+            border: 1px solid var(--line);
+            background: var(--bg3);
+            padding: 0 14px;
+            font-size: 14.5px;
+            color: var(--txt);
+        }
+
+        .content-wrap {
+            flex: 1;
+            position: relative;
+            min-height: 0;
+            display: flex;
+            overflow: hidden;
+        }
+
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        #scrubber {
+            position: absolute;
+            right: 2px;
+            top: 8px;
+            bottom: 8px;
+            width: 22px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 50;
+        }
+
+        #scrubber .sitem {
+            font-size: 9.5px;
+            color: var(--txt-faint);
+            font-weight: 700;
+            text-transform: lowercase;
+        }
+
+        #scrubber .sitem.active {
+            color: var(--accent);
+        }
+
+        .scrub-bubble {
+            position: fixed;
+            right: 34px;
+            background: var(--accent);
+            color: #fff;
+            font-size: 13px;
+            font-weight: 700;
+            padding: 6px 12px;
+            border-radius: 14px 14px 14px 2px;
+            z-index: 60;
+            display: none;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, .2);
+        }
+
+        .scrub-bubble.show {
+            display: block;
+        }
+
+        .date-section {
+            padding: 14px 12px 2px;
+        }
+
+        .date-head {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--txt);
+            padding: 0 4px 8px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 3px;
+        }
+
+        .cell {
+            position: relative;
+            aspect-ratio: 1/1;
+            background: var(--bg3);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .cell img,
+        .cell video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .cell .dur {
+            position: absolute;
+            right: 4px;
+            bottom: 4px;
+            background: rgba(0, 0, 0, .55);
+            color: #fff;
+            font-size: 10px;
+            padding: 1px 5px;
+            border-radius: 6px;
+        }
+
+        .cell .vidmark {
+            position: absolute;
+            left: 4px;
+            bottom: 4px;
+            color: #fff;
+            font-size: 13px;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, .8);
+        }
+
+        .cell .fav {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            font-size: 14px;
+            color: #ffd23f;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, .7);
+            display: none;
+        }
+
+        .cell.is-fav .fav {
+            display: block;
+        }
+
+        .cell .sentmark {
+            position: absolute;
+            left: 4px;
+            top: 5px;
+            font-size: 11px;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, .7);
+            display: none;
+        }
+
+        .cell.is-fav .sentmark {
+            left: 22px;
+        }
+
+        .cell.is-sent .sentmark {
+            display: block;
+        }
+
+        .cell .check {
+            display: none;
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            border: 2px solid #fff;
+            background: rgba(0, 0, 0, .25);
+            box-shadow: 0 0 2px rgba(0, 0, 0, .4);
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 13px;
+        }
+
+        .content.select-mode .cell .check {
+            display: flex;
+        }
+
+        .cell.selected .check {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .cell.selected::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: rgba(59, 130, 246, .22);
+            border: 2px solid var(--accent);
+            border-radius: 6px;
+        }
+
+        .cell.selected img,
+        .cell.selected video {
+            transform: scale(.92);
+            border-radius: 4px;
+        }
+
+        .albums-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+            padding: 14px;
+        }
+
+        .album-card {
+            border-radius: 14px;
+            overflow: hidden;
+            background: var(--bg2);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, .06);
+        }
+
+        .album-cover {
+            aspect-ratio: 1/1;
+            background: var(--bg3);
+        }
+
+        .album-cover img,
+        .album-cover video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .album-meta {
+            padding: 8px 10px 10px;
+        }
+
+        .album-meta .name {
+            font-size: 13.5px;
+            font-weight: 600;
+        }
+
+        .album-meta .count {
+            font-size: 11.5px;
+            color: var(--txt-faint);
+        }
+
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            padding: 30px;
+            text-align: center;
+            gap: 14px;
+        }
+
+        .empty-state .ic {
+            font-size: 52px;
+        }
+
+        .empty-state h2 {
+            font-size: 18px;
+            margin: 0;
+        }
+
+        .empty-state p {
+            font-size: 13.5px;
+            color: var(--txt-dim);
+            line-height: 1.5;
+            margin: 0;
+            max-width: 320px;
+        }
+
+        .big-btn {
+            background: var(--accent);
+            color: #fff;
+            padding: 0 28px;
+            height: 48px;
+            border-radius: 24px;
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .big-btn:active {
+            opacity: .85;
+        }
+
+        .scan-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 16px;
+            font-size: 12.5px;
+            color: var(--txt-dim);
+        }
+
+        .spinner {
+            width: 15px;
+            height: 15px;
+            border: 2px solid var(--line);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin .7s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .selectbar {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            background: var(--bg2);
+            border-top: 1px solid var(--line);
+            flex: 0 0 auto;
+            flex-wrap: wrap;
+            row-gap: 6px;
+        }
+
+        .selectbar.show {
+            display: flex;
+        }
+
+        .selectbar .count {
+            flex: 1;
+            font-size: 14px;
+            font-weight: 600;
+            min-width: 80px;
+        }
+
+        /* крупный/упрощённый режим — для пользователей, которым трудно с мелким интерфейсом */
+        body.simple-mode .grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 6px;
+        }
+
+        body.simple-mode .date-head {
+            font-size: 19px;
+        }
+
+        body.simple-mode .tab {
+            font-size: 16px;
+            padding: 12px 0;
+        }
+
+        body.simple-mode .text-btn {
+            font-size: 17px;
+        }
+
+        body.simple-mode .icon-btn {
+            width: 48px;
+            height: 48px;
+            font-size: 21px;
+        }
+
+        body.simple-mode .big-btn {
+            height: 56px;
+            font-size: 17px;
+        }
+
+        body.simple-mode .selectbar .count {
+            font-size: 16px;
+        }
+
+        body.simple-mode .topbar h1 {
+            font-size: 22px;
+        }
+
+        body.simple-mode .searchbar input {
+            height: 48px;
+            font-size: 17px;
+        }
 
         /* fullscreen viewer */
-        #viewer { position: fixed; inset: 0; background: #000; z-index: 3000; display: flex; flex-direction: column; }
-        #viewer.hidden { display: none; }
-        .v-top { display: flex; align-items: center; padding: 10px 12px; color: #fff; flex: 0 0 auto; }
-        .v-top .v-date { flex: 1; text-align: center; font-size: 13px; opacity: .85; }
-        .v-stage { flex: 1; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
-        .v-slide { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; transition: transform .25s ease; }
-        .v-slide img, .v-slide video { max-width: 100%; max-height: 100%; object-fit: contain; }
+        #viewer {
+            position: fixed;
+            inset: 0;
+            background: #000;
+            z-index: 3000;
+            display: flex;
+            flex-direction: column;
+        }
 
-        .toast-stack { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; gap: 6px; z-index: 4000; align-items: center; pointer-events: none; }
-        .toast { background: #1a1c24; color: #fff; padding: 9px 16px; border-radius: 20px; font-size: 12.5px; box-shadow: 0 8px 20px rgba(0,0,0,.25); }
+        #viewer.hidden {
+            display: none;
+        }
+
+        .v-top {
+            display: flex;
+            align-items: center;
+            padding: 10px 12px;
+            color: #fff;
+            flex: 0 0 auto;
+        }
+
+        .v-top .v-date {
+            flex: 1;
+            text-align: center;
+            font-size: 13px;
+            opacity: .85;
+        }
+
+        .v-stage {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            touch-action: none;
+        }
+
+        .v-slide {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            will-change: transform;
+        }
+
+        .v-slide img,
+        .v-slide video {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            -webkit-touch-callout: none;
+        }
+
+        .toast-stack {
+            position: fixed;
+            bottom: 90px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            z-index: 4000;
+            align-items: center;
+            pointer-events: none;
+        }
+
+        .toast {
+            background: #1a1c24;
+            color: #fff;
+            padding: 9px 16px;
+            border-radius: 20px;
+            font-size: 12.5px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, .25);
+        }
     </style>
 </head>
 
@@ -99,18 +590,32 @@
     <div id="app">
         <div class="topbar">
             <h1>Галерея</h1>
+            <button class="icon-btn" id="btnSearchToggle" title="Поиск">🔍</button>
+            <button class="icon-btn" id="btnSimpleMode" title="Крупный режим">Aa</button>
             <button class="icon-btn" id="btnRescan" title="Обновить">⟳</button>
             <button class="text-btn" id="btnSelectMode">Выбрать</button>
         </div>
         <div class="tabs" id="tabs">
             <div class="tab active" data-tab="photos">Фото</div>
             <div class="tab" data-tab="albums">Альбомы</div>
+            <div class="tab" data-tab="favorites">★ Избранное</div>
         </div>
-        <div class="content" id="content"></div>
+        <div class="searchbar" id="searchbar">
+            <input type="text" id="searchInput" placeholder="Поиск по названию или дате…">
+        </div>
+        <div class="content-wrap">
+            <div class="content" id="content"></div>
+            <div id="scrubber" class="hidden"></div>
+            <div class="scrub-bubble" id="scrubBubble"></div>
+        </div>
         <div class="selectbar" id="selectbar">
             <button class="text-btn" id="btnCancelSelect">Отмена</button>
             <div class="count" id="selCount">Выбрано: 0</div>
-            <button class="big-btn" id="btnSendEditor" style="height:40px;padding:0 18px;font-size:13.5px">В VideoForge →</button>
+            <button class="icon-btn" id="btnFavSelected" title="В избранное">☆</button>
+            <button class="icon-btn" id="btnShareSelected" title="Поделиться">⇪</button>
+            <button class="icon-btn" id="btnDeleteSelected" title="Удалить" style="color:var(--danger)">🗑</button>
+            <button class="big-btn" id="btnSendEditor" style="height:40px;padding:0 18px;font-size:13.5px">В VideoForge
+                →</button>
         </div>
     </div>
 
@@ -118,7 +623,9 @@
         <div class="v-top">
             <button class="icon-btn" id="btnCloseViewer" style="color:#fff">✕</button>
             <div class="v-date" id="vDate"></div>
-            <div style="width:40px"></div>
+            <button class="icon-btn" id="btnFavViewer" style="color:#fff">☆</button>
+            <button class="icon-btn" id="btnShareViewer" style="color:#fff">⇪</button>
+            <button class="icon-btn" id="btnDeleteViewer" style="color:#fff">🗑</button>
         </div>
         <div class="v-stage" id="vStage"></div>
     </div>
@@ -159,20 +666,29 @@
         }
 
         /* =================== STATE =================== */
-        // item: { id, name, kind, lastModified, folder, handle? (FS Access) , thumbUrl?, fullUrl? }
+        // item: { id (=key), key, name, kind, lastModified, folder, handle?, parentHandle?, file? }
+        // id/key строятся из folder+name+lastModified — стабильны между запусками,
+        // это и позволяет кэшировать миниатюры и список файлов персистентно.
         let items = [];
         let rootLabel = '';
         let selectMode = false;
         let selectedOrder = []; // хранит порядок ВЫБОРА, а не порядок на экране
         let activeTab = 'photos';
+        let searchQuery = '';
+        let favorites = new Set();
+        let sentSet = new Set();
         const thumbCache = new Map();
-        const idCounter = (() => { let n = 0; return () => 'g' + (n++); })();
+        function itemKey(folder, name, lastModified) { return folder + '/' + name + '/' + lastModified; }
 
-        /* =================== IndexedDB: сохранённый доступ к папке + handoff в редактор =================== */
+        /* =================== IndexedDB: доступ к папке + персистентный кэш (список + миниатюры) + handoff в редактор =================== */
         function openGalleryDB() {
             return new Promise((resolve, reject) => {
-                const req = indexedDB.open('gallery_db', 1);
-                req.onupgradeneeded = () => { if (!req.result.objectStoreNames.contains('handles')) req.result.createObjectStore('handles'); };
+                const req = indexedDB.open('gallery_db', 2);
+                req.onupgradeneeded = () => {
+                    const db = req.result;
+                    if (!db.objectStoreNames.contains('handles')) db.createObjectStore('handles');
+                    if (!db.objectStoreNames.contains('kv')) db.createObjectStore('kv');
+                };
                 req.onsuccess = () => resolve(req.result); req.onerror = () => reject(req.error);
             });
         }
@@ -182,12 +698,29 @@
         async function loadRootHandle() {
             try { const db = await openGalleryDB(); return await new Promise((res, rej) => { const tx = db.transaction('handles', 'readonly'); const rq = tx.objectStore('handles').get('root'); rq.onsuccess = () => res(rq.result || null); rq.onerror = () => rej(rq.error); }); } catch (e) { return null; }
         }
+        async function kvGet(key) {
+            try { const db = await openGalleryDB(); return await new Promise((res, rej) => { const tx = db.transaction('kv', 'readonly'); const rq = tx.objectStore('kv').get(key); rq.onsuccess = () => res(rq.result); rq.onerror = () => rej(rq.error); }); } catch (e) { return undefined; }
+        }
+        async function kvSet(key, val) {
+            try { const db = await openGalleryDB(); const tx = db.transaction('kv', 'readwrite'); tx.objectStore('kv').put(val, key); } catch (e) { }
+        }
+        async function kvDelete(key) {
+            try { const db = await openGalleryDB(); const tx = db.transaction('kv', 'readwrite'); tx.objectStore('kv').delete(key); } catch (e) { }
+        }
         function openHandoffDB() {
             return new Promise((resolve, reject) => {
                 const req = indexedDB.open('videoforge_handoff', 1);
                 req.onupgradeneeded = () => { if (!req.result.objectStoreNames.contains('items')) req.result.createObjectStore('items'); };
                 req.onsuccess = () => resolve(req.result); req.onerror = () => reject(req.error);
             });
+        }
+        async function loadPersistentSets() {
+            const favArr = await kvGet('favorites'); if (Array.isArray(favArr)) favorites = new Set(favArr);
+            const sentArr = await kvGet('sent_to_editor'); if (Array.isArray(sentArr)) sentSet = new Set(sentArr);
+        }
+        async function toggleFavorite(item) {
+            if (favorites.has(item.key)) favorites.delete(item.key); else favorites.add(item.key);
+            await kvSet('favorites', [...favorites]);
         }
 
         /* =================== СКАНИРОВАНИЕ =================== */
@@ -216,28 +749,48 @@
                 const kind = kindOf(f.name); if (!kind) continue;
                 const parts = (f.webkitRelativePath || f.name).split('/');
                 const folder = parts.length > 1 ? parts[parts.length - 2] : 'Файлы';
-                items.push({ id: idCounter(), name: f.name, kind, lastModified: f.lastModified || Date.now(), folder, file: f });
+                const lastModified = f.lastModified || Date.now();
+                const key = itemKey(folder, f.name, lastModified);
+                items.push({ id: key, key, name: f.name, kind, lastModified, folder, file: f });
             }
-            afterScan();
+            items.sort((a, b) => b.lastModified - a.lastModified);
+            render();
+            if (items.length) toast('Найдено: ' + items.length);
         }
 
-        async function scanFSHandle(rootHandle) {
-            items = []; rootLabel = rootHandle.name;
-            showScanStatus(true);
-            await walkDir(rootHandle, rootHandle.name);
-            showScanStatus(false);
-            afterScan();
+        // ВАЖНО: раньше при каждом запуске галерея заново ходила по всей файловой системе И
+        // заново перегенерировала все миниатюры (особенно медленно для видео — там нужно
+        // продекодировать кадр). Из-за этого при каждом открытии казалось, что "всё грузится
+        // заново". Теперь: 1) при запуске мгновенно показываем список и миниатюры из ПРОШЛОГО
+        // сеанса (persistent-кэш в IndexedDB, ключ = папка+имя+дата изменения файла — стабилен
+        // между запусками), 2) в фоне тихо пересканируем папку и добавляем ТОЛЬКО те файлы,
+        // которых раньше не было — без спиннера и без перегенерации существующих миниатюр.
+        async function scanFSHandle(rootHandle, opts = {}) {
+            rootLabel = rootHandle.name;
+            if (!opts.silent) showScanStatus(true);
+            const fresh = [];
+            await walkDir(rootHandle, rootHandle.name, fresh);
+            if (!opts.silent) showScanStatus(false);
+            const prevKeys = new Set(items.map(i => i.key));
+            const newCount = fresh.filter(f => !prevKeys.has(f.key)).length;
+            items = fresh;
+            items.sort((a, b) => b.lastModified - a.lastModified);
+            await persistList();
+            render();
+            if (opts.silent) { if (newCount > 0) toast('Новых файлов: ' + newCount); }
+            else if (items.length) toast('Найдено: ' + items.length);
         }
-        async function walkDir(dirHandle, folderLabel) {
+        async function walkDir(dirHandle, folderLabel, out) {
             try {
                 for await (const [name, handle] of dirHandle.entries()) {
                     if (handle.kind === 'directory') {
-                        await walkDir(handle, name);
+                        await walkDir(handle, name, out);
                     } else {
                         const kind = kindOf(name); if (!kind) continue;
                         let lastModified = Date.now();
                         try { const f = await handle.getFile(); lastModified = f.lastModified; } catch (e) { continue; }
-                        items.push({ id: idCounter(), name, kind, lastModified, folder: folderLabel, handle });
+                        const key = itemKey(folderLabel, name, lastModified);
+                        out.push({ id: key, key, name, kind, lastModified, folder: folderLabel, handle, parentHandle: dirHandle });
                     }
                 }
             } catch (e) { /* пропускаем недоступные папки */ }
@@ -249,21 +802,31 @@
             } else if (el) el.remove();
         }
 
-        function afterScan() {
-            items.sort((a, b) => b.lastModified - a.lastModified);
-            render();
-            if (items.length) toast('Найдено: ' + items.length);
+        async function persistList() {
+            const meta = items.map(it => ({ id: it.id, key: it.key, name: it.name, kind: it.kind, lastModified: it.lastModified, folder: it.folder }));
+            await kvSet('items_meta', meta);
+        }
+        async function loadCachedList() {
+            const meta = await kvGet('items_meta');
+            if (meta && meta.length) {
+                items = meta.map(m => ({ ...m })); // handle/parentHandle появятся после фонового пересканирования
+                items.sort((a, b) => b.lastModified - a.lastModified);
+                render();
+                return true;
+            }
+            return false;
         }
 
         async function tryAutoRestore() {
-            if (!supportsFS) { render(); return; }
+            const hadCache = await loadCachedList(); // мгновенный показ из прошлого сеанса
+            if (!supportsFS) { if (!items.length) render(); return; }
             const handle = await loadRootHandle();
-            if (!handle) { render(); return; }
+            if (!handle) { if (!items.length) render(); return; }
             try {
                 const perm = await handle.queryPermission({ mode: 'read' });
-                if (perm === 'granted') { await scanFSHandle(handle); return; }
+                if (perm === 'granted') { await scanFSHandle(handle, { silent: hadCache }); return; }
             } catch (e) { }
-            render(); // покажем экран "разрешить доступ" — без явного жеста браузер не даст requestPermission
+            if (!items.length) render(); // покажем экран "разрешить доступ" — без явного жеста браузер не даст requestPermission
         }
 
         async function reRequestPermission() {
@@ -276,7 +839,7 @@
             pickFolder();
         }
 
-        /* =================== THUMBNAILS (лениво, через IntersectionObserver) =================== */
+        /* =================== THUMBNAILS (лениво, через IntersectionObserver, с персистентным кэшем) =================== */
         const io = new IntersectionObserver((entries) => {
             entries.forEach(en => { if (en.isIntersecting) { loadThumb(en.target); io.unobserve(en.target); } });
         }, { rootMargin: '200px' });
@@ -286,14 +849,34 @@
             if (item.handle) { try { return await item.handle.getFile(); } catch (e) { return null; } }
             return null;
         }
+        function downscaleImageToDataURL(url, maxSize) {
+            return new Promise(resolve => {
+                const img = new Image();
+                img.onload = () => {
+                    const scale = Math.min(1, maxSize / Math.max(img.naturalWidth, img.naturalHeight));
+                    const w = Math.max(1, Math.round(img.naturalWidth * scale)), h = Math.max(1, Math.round(img.naturalHeight * scale));
+                    const c = document.createElement('canvas'); c.width = w; c.height = h;
+                    c.getContext('2d').drawImage(img, 0, 0, w, h);
+                    resolve(c.toDataURL('image/jpeg', .72));
+                };
+                img.onerror = () => resolve(null);
+                img.src = url;
+            });
+        }
         async function loadThumb(cellEl) {
             const id = cellEl.dataset.id;
             const item = items.find(i => i.id === id); if (!item) return;
-            if (thumbCache.has(id)) { paintThumb(cellEl, thumbCache.get(id), item); return; }
+            if (thumbCache.has(item.key)) { paintThumb(cellEl, thumbCache.get(item.key), item); return; }
+            const persisted = await kvGet('thumb:' + item.key);
+            if (persisted) { thumbCache.set(item.key, persisted); paintThumb(cellEl, persisted, item); return; }
             const file = await getFileFor(item); if (!file) return;
             const url = URL.createObjectURL(file);
             if (item.kind === 'image') {
-                thumbCache.set(id, url); paintThumb(cellEl, url, item);
+                const durl = await downscaleImageToDataURL(url, 320);
+                URL.revokeObjectURL(url);
+                if (!durl) return;
+                thumbCache.set(item.key, durl); paintThumb(cellEl, durl, item);
+                kvSet('thumb:' + item.key, durl);
             } else {
                 // для видео берём кадр на маленьком canvas, чтобы не держать сотни <video> элементов в DOM
                 const v = document.createElement('video'); v.src = url; v.muted = true; v.playsInline = true; v.preload = 'metadata';
@@ -305,8 +888,9 @@
                         const dw = cw * scale, dh = ch * scale;
                         c.getContext('2d').drawImage(v, (160 - dw) / 2, (160 - dh) / 2, dw, dh);
                         const durl = c.toDataURL('image/jpeg', .6);
-                        thumbCache.set(id, { thumb: durl, dur: v.duration });
-                        paintThumb(cellEl, { thumb: durl, dur: v.duration }, item);
+                        const data = { thumb: durl, dur: v.duration };
+                        thumbCache.set(item.key, data); paintThumb(cellEl, data, item);
+                        kvSet('thumb:' + item.key, data);
                     } catch (e) { }
                     URL.revokeObjectURL(url);
                 }, { once: true });
@@ -326,11 +910,22 @@
         /* =================== RENDER =================== */
         function render() {
             if (!items.length) { renderEmpty(); return; }
-            if (activeTab === 'photos') renderPhotos(); else renderAlbums();
+            if (activeTab === 'albums') renderAlbums();
+            else renderPhotos(getVisibleItems());
+            $('#content').classList.toggle('select-mode', selectMode);
             $('#selectbar').classList.toggle('show', selectMode);
         }
+        function getVisibleItems() {
+            let list = items;
+            if (activeTab === 'favorites') list = list.filter(it => favorites.has(it.key));
+            if (searchQuery) {
+                const q = searchQuery.toLowerCase();
+                list = list.filter(it => it.name.toLowerCase().includes(q) || dayLabel(it.lastModified).toLowerCase().includes(q));
+            }
+            return list;
+        }
         function renderEmpty() {
-            const c = $('#content');
+            const c = $('#content'); $('#scrubber').classList.add('hidden');
             c.innerHTML = `<div class="empty-state">
                 <div class="ic">🖼️</div>
                 <h2>Нет доступа к фото</h2>
@@ -339,18 +934,43 @@
             </div>`;
             $('#btnGrant').onclick = () => reRequestPermission();
         }
-        function renderPhotos() {
+        function renderPhotos(list) {
             const c = $('#content'); c.innerHTML = '';
+            if (!list.length) {
+                $('#scrubber').classList.add('hidden');
+                const msg = activeTab === 'favorites' ? 'Пока нет избранного' : 'Ничего не найдено';
+                const ic = activeTab === 'favorites' ? '☆' : '🔍';
+                c.innerHTML = `<div class="empty-state"><div class="ic">${ic}</div><h2>${msg}</h2></div>`;
+                return;
+            }
             const groups = new Map();
-            items.forEach(it => { const k = dayKey(it.lastModified); if (!groups.has(k)) groups.set(k, []); groups.get(k).push(it); });
+            list.forEach(it => { const k = dayKey(it.lastModified); if (!groups.has(k)) groups.set(k, []); groups.get(k).push(it); });
             [...groups.keys()].sort().reverse().forEach(k => {
-                const list = groups.get(k);
-                const sec = document.createElement('div'); sec.className = 'date-section';
-                sec.innerHTML = `<div class="date-head">${dayLabel(list[0].lastModified)}</div>`;
+                const dlist = groups.get(k);
+                const sec = document.createElement('div'); sec.className = 'date-section'; sec.dataset.ts = dlist[0].lastModified;
+                sec.innerHTML = `<div class="date-head">${dayLabel(dlist[0].lastModified)}</div>`;
                 const grid = document.createElement('div'); grid.className = 'grid';
-                list.forEach(it => grid.appendChild(makeCell(it)));
+                dlist.forEach(it => grid.appendChild(makeCell(it)));
                 sec.appendChild(grid); c.appendChild(sec);
             });
+            buildScrubber();
+        }
+        function buildScrubber() {
+            const scrub = $('#scrubber');
+            const sections = $all('.date-section', $('#content'));
+            if (sections.length < 4) { scrub.classList.add('hidden'); scrub.innerHTML = ''; return; }
+            const seen = new Set(); const monthEntries = [];
+            sections.forEach(sec => {
+                const ts = Number(sec.dataset.ts); const d = new Date(ts);
+                const mk = d.getFullYear() + '-' + d.getMonth();
+                if (!seen.has(mk)) { seen.add(mk); monthEntries.push({ top: sec.offsetTop, label: d.toLocaleDateString('ru-RU', { month: 'short' }).replace('.', '') }); }
+            });
+            scrub.innerHTML = '';
+            monthEntries.forEach(en => {
+                const div = document.createElement('div'); div.className = 'sitem'; div.textContent = en.label; div.dataset.top = en.top;
+                scrub.appendChild(div);
+            });
+            scrub.classList.remove('hidden');
         }
         function renderAlbums() {
             const c = $('#content'); c.innerHTML = '';
@@ -371,10 +991,18 @@
             return [...items].sort((a, b) => (a.folder === folder ? -1 : 0) - (b.folder === folder ? -1 : 0) || b.lastModified - a.lastModified);
         }
         async function loadAlbumCover(imgEl, item) {
-            if (thumbCache.has(item.id)) { const d = thumbCache.get(item.id); imgEl.src = typeof d === 'string' ? d : d.thumb; return; }
+            if (thumbCache.has(item.key)) { const d = thumbCache.get(item.key); imgEl.src = typeof d === 'string' ? d : d.thumb; return; }
+            const persisted = await kvGet('thumb:' + item.key);
+            if (persisted) { thumbCache.set(item.key, persisted); imgEl.src = typeof persisted === 'string' ? persisted : persisted.thumb; return; }
             const file = await getFileFor(item); if (!file) return;
             const url = URL.createObjectURL(file);
-            if (item.kind === 'image') { thumbCache.set(item.id, url); imgEl.src = url; return; }
+            if (item.kind === 'image') {
+                const durl = await downscaleImageToDataURL(url, 320);
+                URL.revokeObjectURL(url);
+                if (!durl) return;
+                thumbCache.set(item.key, durl); imgEl.src = durl; kvSet('thumb:' + item.key, durl);
+                return;
+            }
             const v = document.createElement('video'); v.src = url; v.muted = true; v.playsInline = true; v.preload = 'metadata';
             v.addEventListener('loadedmetadata', () => { try { v.currentTime = Math.min(0.3, (v.duration || 1) / 4); } catch (e) { } });
             v.addEventListener('seeked', () => {
@@ -384,7 +1012,8 @@
                     const dw = cw * scale, dh = ch * scale;
                     c.getContext('2d').drawImage(v, (160 - dw) / 2, (160 - dh) / 2, dw, dh);
                     const durl = c.toDataURL('image/jpeg', .6);
-                    thumbCache.set(item.id, { thumb: durl, dur: v.duration }); imgEl.src = durl;
+                    const data = { thumb: durl, dur: v.duration };
+                    thumbCache.set(item.key, data); imgEl.src = durl; kvSet('thumb:' + item.key, data);
                 } catch (e) { }
                 URL.revokeObjectURL(url);
             }, { once: true });
@@ -393,8 +1022,10 @@
         let pressTimer = null;
         function makeCell(item) {
             const cell = document.createElement('div'); cell.className = 'cell'; cell.dataset.id = item.id;
-            cell.innerHTML = `<img loading="lazy">${item.kind === 'video' ? '<span class="vidmark">▶</span><span class="dur"></span>' : ''}<span class="check">✓</span>`;
+            cell.innerHTML = `<img loading="lazy">${item.kind === 'video' ? '<span class="vidmark">▶</span><span class="dur"></span>' : ''}<span class="fav">★</span><span class="sentmark">🎬</span><span class="check">✓</span>`;
             io.observe(cell);
+            cell.classList.toggle('is-fav', favorites.has(item.key));
+            cell.classList.toggle('is-sent', sentSet.has(item.key));
             cell.onpointerdown = () => { pressTimer = setTimeout(() => { if (!selectMode) enterSelectMode(); toggleSelect(item, cell); }, 420); };
             cell.onpointerup = () => clearTimeout(pressTimer);
             cell.onpointerleave = () => clearTimeout(pressTimer);
@@ -403,8 +1034,8 @@
             return cell;
         }
 
-        function enterSelectMode() { selectMode = true; $('#btnSelectMode').textContent = 'Готово'; $('#selectbar').classList.add('show'); }
-        function exitSelectMode() { selectMode = false; selectedOrder = []; $('#btnSelectMode').textContent = 'Выбрать'; $('#selectbar').classList.remove('show'); render(); }
+        function enterSelectMode() { selectMode = true; $('#btnSelectMode').textContent = 'Готово'; $('#selectbar').classList.add('show'); $('#content').classList.add('select-mode'); }
+        function exitSelectMode() { selectMode = false; selectedOrder = []; $('#btnSelectMode').textContent = 'Выбрать'; $('#selectbar').classList.remove('show'); $('#content').classList.remove('select-mode'); render(); }
         function toggleSelect(item, cell) {
             const idx = selectedOrder.findIndex(i => i.id === item.id);
             if (idx >= 0) { selectedOrder.splice(idx, 1); cell.classList.remove('selected'); }
@@ -417,16 +1048,102 @@
 
         $all('.tab').forEach(t => t.onclick = () => { activeTab = t.dataset.tab; $all('.tab').forEach(x => x.classList.toggle('active', x === t)); render(); });
 
+        /* =================== ПОИСК =================== */
+        $('#btnSearchToggle').onclick = () => {
+            const sb = $('#searchbar'); sb.classList.toggle('show');
+            if (sb.classList.contains('show')) { $('#searchInput').focus(); }
+            else { searchQuery = ''; $('#searchInput').value = ''; render(); }
+        };
+        $('#searchInput').oninput = e => { searchQuery = e.target.value.trim(); render(); };
+
+        /* =================== КРУПНЫЙ РЕЖИМ =================== */
+        function applySimpleMode(on) {
+            document.body.classList.toggle('simple-mode', on);
+            try { localStorage.setItem('gallery_simple', on ? '1' : '0'); } catch (e) { }
+        }
+        $('#btnSimpleMode').onclick = () => applySimpleMode(!document.body.classList.contains('simple-mode'));
+
+        /* =================== МЕСЯЦ-СКРАББЕР (быстрая прокрутка сбоку) =================== */
+        (function enableScrubber() {
+            const scrub = $('#scrubber'); const bubble = $('#scrubBubble');
+            let dragging = false;
+            function clamp01(v) { return Math.max(0, Math.min(1, v)); }
+            function pick(clientY) {
+                const sitems = $all('.sitem', scrub); if (!sitems.length) return;
+                const rect = scrub.getBoundingClientRect();
+                const rel = clamp01((clientY - rect.top) / Math.max(1, rect.height));
+                const idx = Math.min(sitems.length - 1, Math.floor(rel * sitems.length));
+                const el = sitems[idx];
+                sitems.forEach(i => i.classList.remove('active')); el.classList.add('active');
+                $('#content').scrollTop = Number(el.dataset.top || 0) - 6;
+                bubble.textContent = el.textContent;
+                bubble.style.top = clamp01((clientY - 16) / window.innerHeight) * window.innerHeight + 'px';
+                bubble.classList.add('show');
+            }
+            function stop() { dragging = false; bubble.classList.remove('show'); }
+            scrub.addEventListener('pointerdown', e => { dragging = true; try { scrub.setPointerCapture(e.pointerId); } catch (err) { } pick(e.clientY); });
+            scrub.addEventListener('pointermove', e => { if (dragging) pick(e.clientY); });
+            scrub.addEventListener('pointerup', stop);
+            scrub.addEventListener('pointercancel', stop);
+        })();
+
+        /* =================== УДАЛЕНИЕ =================== */
+        // Реальное удаление файла с устройства возможно только через File System Access API
+        // (когда есть parentHandle.removeEntry) — так работает "Разрешить доступ к папке".
+        // В запасном режиме (обычный выбор файлов) браузер физически не даёт удалять файлы.
+        async function deleteItems(list) {
+            const deletable = list.filter(it => it.parentHandle);
+            if (!deletable.length) { toast('Удаление доступно только при доступе через "Разрешить доступ к папке"'); return; }
+            const ok = confirm(deletable.length === 1 ? `Удалить "${deletable[0].name}"?` : `Удалить ${deletable.length} файлов?`);
+            if (!ok) return;
+            let removed = 0;
+            for (const it of deletable) {
+                try { await it.parentHandle.removeEntry(it.name); removed++; } catch (e) { continue; }
+                items = items.filter(x => x.id !== it.id);
+                thumbCache.delete(it.key);
+                kvDelete('thumb:' + it.key);
+            }
+            await persistList();
+            selectedOrder = selectedOrder.filter(x => !deletable.some(d => d.id === x.id));
+            toast('Удалено: ' + removed);
+            render();
+        }
+        $('#btnDeleteSelected').onclick = async () => {
+            if (!selectedOrder.length) { toast('Сначала выбери файлы'); return; }
+            await deleteItems([...selectedOrder]);
+            if (!selectedOrder.length) exitSelectMode();
+        };
+        $('#btnFavSelected').onclick = async () => {
+            if (!selectedOrder.length) { toast('Сначала выбери файлы'); return; }
+            selectedOrder.forEach(it => favorites.add(it.key));
+            await kvSet('favorites', [...favorites]);
+            toast('Добавлено в избранное: ' + selectedOrder.length);
+            render();
+        };
+        $('#btnShareSelected').onclick = async () => {
+            if (!selectedOrder.length) { toast('Сначала выбери файлы'); return; }
+            const files = [];
+            for (const it of selectedOrder) { const f = await getFileFor(it); if (f) files.push(f); }
+            if (!files.length) { toast('Не удалось подготовить файлы'); return; }
+            if (navigator.canShare && navigator.canShare({ files })) {
+                try { await navigator.share({ files }); } catch (e) { }
+            } else { toast('Поделиться не поддерживается в этом браузере'); }
+        };
+
         /* =================== ПРОСМОТР =================== */
         let viewerList = [], viewerIdx = 0;
         function openViewer(item) {
             viewerList = items; viewerIdx = items.findIndex(i => i.id === item.id);
             $('#viewer').classList.remove('hidden');
+            // пушим состояние в историю — тогда аппаратная/браузерная кнопка "назад" закроет
+            // только просмотрщик, а не выкинет из всей галереи (раньше выкидывало).
+            history.pushState({ vfViewer: true }, '');
             paintViewer();
         }
         async function paintViewer() {
             const item = viewerList[viewerIdx]; if (!item) return;
             $('#vDate').textContent = dayLabel(item.lastModified);
+            $('#btnFavViewer').textContent = favorites.has(item.key) ? '★' : '☆';
             const stage = $('#vStage'); stage.innerHTML = '';
             const file = await getFileFor(item); if (!file) return;
             const url = URL.createObjectURL(file);
@@ -435,18 +1152,70 @@
             else { const img = document.createElement('img'); img.src = url; slide.appendChild(img); }
             stage.appendChild(slide);
         }
-        $('#btnCloseViewer').onclick = () => { $('#viewer').classList.add('hidden'); $('#vStage').innerHTML = ''; };
+        function closeViewerUI() { $('#viewer').classList.add('hidden'); $('#vStage').innerHTML = ''; }
+        $('#btnCloseViewer').onclick = () => { if (history.state && history.state.vfViewer) history.back(); else closeViewerUI(); };
+        window.addEventListener('popstate', () => { if (!$('#viewer').classList.contains('hidden')) closeViewerUI(); });
+
+        $('#btnFavViewer').onclick = async () => {
+            const item = viewerList[viewerIdx]; if (!item) return;
+            await toggleFavorite(item);
+            $('#btnFavViewer').textContent = favorites.has(item.key) ? '★' : '☆';
+        };
+        $('#btnShareViewer').onclick = async () => {
+            const item = viewerList[viewerIdx]; if (!item) return;
+            const file = await getFileFor(item); if (!file) { toast('Не удалось поделиться'); return; }
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                try { await navigator.share({ files: [file], title: item.name }); } catch (e) { }
+            } else { toast('Поделиться не поддерживается в этом браузере'); }
+        };
+
+        $('#btnDeleteViewer').onclick = async () => {
+            const item = viewerList[viewerIdx]; if (!item) return;
+            await deleteItems([item]);
+            viewerList = items;
+            if (!viewerList.length) { if (history.state && history.state.vfViewer) history.back(); else closeViewerUI(); return; }
+            viewerIdx = Math.min(viewerIdx, viewerList.length - 1);
+            paintViewer();
+        };
+
+        // Аккуратный свайп: картинка/видео следует за пальцем во время движения (без рывков),
+        // а при отпускании либо доезжает до соседнего кадра, либо плавно возвращается на место.
         (function enableSwipe() {
-            const stage = $('#vStage'); let startX = 0, dragging = false;
-            stage.addEventListener('pointerdown', e => { startX = e.clientX; dragging = true; });
-            stage.addEventListener('pointerup', e => {
-                if (!dragging) return; dragging = false;
-                const dx = e.clientX - startX;
-                if (Math.abs(dx) > 60) {
-                    if (dx < 0 && viewerIdx < viewerList.length - 1) { viewerIdx++; paintViewer(); }
-                    else if (dx > 0 && viewerIdx > 0) { viewerIdx--; paintViewer(); }
-                }
+            const stage = $('#vStage');
+            let dragging = false, startX = 0, startY = 0, curX = 0, axis = null, slide = null;
+            stage.addEventListener('pointerdown', e => {
+                slide = stage.querySelector('.v-slide'); if (!slide) return;
+                dragging = true; startX = e.clientX; startY = e.clientY; curX = 0; axis = null;
+                slide.style.transition = 'none';
+                try { stage.setPointerCapture(e.pointerId); } catch (err) { }
             });
+            stage.addEventListener('pointermove', e => {
+                if (!dragging || !slide) return;
+                const dx = e.clientX - startX, dy = e.clientY - startY;
+                if (axis === null && (Math.abs(dx) > 8 || Math.abs(dy) > 8)) axis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
+                if (axis !== 'x') return;
+                curX = dx;
+                slide.style.transform = `translateX(${dx}px)`;
+            });
+            function finish() {
+                if (!dragging || !slide) { dragging = false; return; }
+                dragging = false;
+                slide.style.transition = 'transform .2s ease';
+                if (axis === 'x' && Math.abs(curX) > 60) {
+                    const dir = curX < 0 ? 1 : -1; // свайп влево -> следующий кадр
+                    const canGo = dir === 1 ? viewerIdx < viewerList.length - 1 : viewerIdx > 0;
+                    if (canGo) {
+                        slide.style.transform = `translateX(${-dir * stage.clientWidth}px)`;
+                        const finishedSlide = slide;
+                        setTimeout(() => { viewerIdx += dir; paintViewer(); }, 200);
+                        return;
+                    }
+                }
+                slide.style.transform = 'translateX(0)';
+                axis = null;
+            }
+            stage.addEventListener('pointerup', finish);
+            stage.addEventListener('pointercancel', finish);
         })();
 
         /* =================== ОТПРАВКА В VIDEOFORGE =================== */
@@ -457,6 +1226,7 @@
             for (const item of selectedOrder) {
                 const file = await getFileFor(item); if (!file) continue;
                 payload.push({ name: file.name, type: file.type || (item.kind === 'video' ? 'video/mp4' : 'image/jpeg'), lastModified: file.lastModified, blob: file });
+                sentSet.add(item.key);
             }
             try {
                 const db = await openHandoffDB();
@@ -464,11 +1234,16 @@
                 tx.objectStore('items').put(payload, 'queue');
                 await new Promise(res => tx.oncomplete = res);
             } catch (e) { toast('Ошибка передачи файлов'); return; }
+            await kvSet('sent_to_editor', [...sentSet]);
             location.href = EDITOR_URL + (EDITOR_URL.includes('?') ? '&' : '?') + 'import=1';
         };
 
         /* =================== INIT =================== */
-        tryAutoRestore();
+        (async function init() {
+            await loadPersistentSets();
+            applySimpleMode((() => { try { return localStorage.getItem('gallery_simple') === '1'; } catch (e) { return false; } })());
+            await tryAutoRestore();
+        })();
         if ('serviceWorker' in navigator) { window.addEventListener('load', () => navigator.serviceWorker.register('gallery-sw.js').catch(() => { })); }
     </script>
 </body>
