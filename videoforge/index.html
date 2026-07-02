@@ -1,0 +1,2399 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>VideoForge — видеоредактор</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="icon-192.png">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <meta name="theme-color" content="#0e0f13">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="VideoForge">
+    <style>
+        :root {
+            --bg: #0e0f13;
+            --bg2: #15171d;
+            --bg3: #1b1e26;
+            --bg4: #22252f;
+            --line: #2a2e3a;
+            --line2: #343845;
+            --txt: #e8e9ee;
+            --txt-dim: #9498a6;
+            --txt-faint: #5d6273;
+            --accent: #7c5cff;
+            --accent2: #52e0c4;
+            --danger: #ff5c7a;
+            --radius: 14px;
+            --radius-sm: 10px;
+            --tap: 50px;
+            --ff: 'Segoe UI', Roboto, system-ui, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+
+        html,
+        body {
+            margin: 0;
+            height: 100%;
+            background: var(--bg);
+            color: var(--txt);
+            font-family: var(--ff);
+            overflow: hidden;
+        }
+
+        button {
+            font-family: inherit;
+            cursor: pointer;
+        }
+
+        input,
+        select,
+        textarea {
+            font-family: inherit;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        #app {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            height: 100dvh;
+        }
+
+        /* ---------- TOP BAR ---------- */
+        .topbar {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 0 8px;
+            height: 50px;
+            background: var(--bg2);
+            border-bottom: 1px solid var(--line);
+            flex: 0 0 auto;
+        }
+
+        .tb-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            background: var(--bg3);
+            border: 1px solid var(--line2);
+            color: var(--txt);
+            height: 42px;
+            min-width: 42px;
+            padding: 0 12px;
+            border-radius: var(--radius-sm);
+            font-size: 16px;
+        }
+
+        .tb-btn:active {
+            transform: scale(.95);
+        }
+
+        .tb-btn.primary {
+            background: linear-gradient(135deg, var(--accent), #5e3fe0);
+            border: none;
+            color: #fff;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .tb-spacer {
+            flex: 1;
+        }
+
+        #autosaveTag {
+            font-size: 10.5px;
+            color: var(--txt-faint);
+            white-space: nowrap;
+        }
+
+        /* ---------- CENTER / PREVIEW ---------- */
+        .center {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            background: #000;
+            position: relative;
+        }
+
+        .preview-wrap {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #stage {
+            position: relative;
+            max-width: 100%;
+            max-height: 100%;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, .6);
+            border-radius: 2px;
+        }
+
+        .xform-box {
+            position: absolute;
+            border: 2px dashed var(--accent2);
+            touch-action: none;
+        }
+
+        .xform-handle {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background: #fff;
+            border: 2px solid var(--accent2);
+            border-radius: 8px;
+            touch-action: none;
+        }
+
+        .xform-handle.nw {
+            left: -15px;
+            top: -15px;
+        }
+
+        .xform-handle.ne {
+            right: -15px;
+            top: -15px;
+        }
+
+        .xform-handle.sw {
+            left: -15px;
+            bottom: -15px;
+        }
+
+        .xform-handle.se {
+            right: -15px;
+            bottom: -15px;
+        }
+
+        .xform-rotate {
+            position: absolute;
+            top: -42px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: var(--accent2);
+            touch-action: none;
+        }
+
+        .xform-rotate::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 100%;
+            width: 1px;
+            height: 18px;
+            background: var(--accent2);
+        }
+
+        .xform-gear {
+            position: absolute;
+            top: -42px;
+            right: -4px;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--accent);
+            border: 2px solid #fff;
+            color: #fff;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            touch-action: none;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, .4);
+        }
+
+        .xform-gear:active {
+            transform: scale(.92);
+        }
+
+        .transport {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 10px;
+            background: var(--bg2);
+            border-top: 1px solid var(--line);
+            flex: 0 0 auto;
+        }
+
+        .transport-btn {
+            background: var(--bg3);
+            border: 1px solid var(--line2);
+            color: var(--txt);
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .transport-btn.play {
+            width: 48px;
+            height: 48px;
+            background: var(--accent);
+            border: none;
+            font-size: 18px;
+        }
+
+        .tcode {
+            font-family: monospace;
+            font-size: 11.5px;
+            color: var(--txt-dim);
+            white-space: nowrap;
+        }
+
+        .ratio-btn {
+            margin-left: auto;
+            background: var(--bg3);
+            border: 1px solid var(--line2);
+            color: var(--txt-dim);
+            height: 36px;
+            padding: 0 12px;
+            border-radius: 18px;
+            font-size: 12.5px;
+        }
+
+        /* ---------- TIMELINE ---------- */
+        .timeline-wrap {
+            flex: 0 0 auto;
+            height: 200px;
+            background: var(--bg2);
+            border-top: 1px solid var(--line);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .timeline-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 8px;
+            border-bottom: 1px solid var(--line);
+            flex: 0 0 auto;
+        }
+
+        .timeline-toolbar .tb-btn {
+            height: 40px;
+            font-size: 13px;
+        }
+
+        .timeline-toolbar .tb-btn.wide {
+            flex: 1;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--accent), #5e3fe0);
+            border: none;
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .tl-scroll {
+            flex: 1;
+            display: flex;
+            overflow: auto;
+            position: relative;
+        }
+
+        .tl-heads {
+            flex: 0 0 auto;
+            width: 46px;
+            background: var(--bg2);
+            position: sticky;
+            left: 0;
+            z-index: 5;
+            border-right: 1px solid var(--line);
+        }
+
+        .tl-ruler-spacer {
+            height: 22px;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .track-head {
+            height: 50px;
+            border-bottom: 1px solid var(--line);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .tl-body {
+            position: relative;
+            flex: 1;
+        }
+
+        .tl-ruler {
+            height: 22px;
+            position: sticky;
+            top: 0;
+            background: var(--bg3);
+            border-bottom: 1px solid var(--line);
+            z-index: 4;
+        }
+
+        .tl-ruler .tick {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            border-left: 1px solid var(--line2);
+            font-size: 9px;
+            color: var(--txt-faint);
+            padding-left: 3px;
+            line-height: 22px;
+        }
+
+        .track-lane {
+            height: 50px;
+            border-bottom: 1px solid var(--line);
+            position: relative;
+            background: repeating-linear-gradient(90deg, rgba(255, 255, 255, .02) 0 1px, transparent 1px 40px);
+        }
+
+        .clip {
+            position: absolute;
+            top: 3px;
+            bottom: 3px;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1.5px solid transparent;
+            display: flex;
+            align-items: center;
+            font-size: 11px;
+            color: #fff;
+            touch-action: none;
+        }
+
+        .clip.selected {
+            border-color: #fff;
+            box-shadow: 0 0 0 2px var(--accent);
+        }
+
+        .clip .clip-label {
+            position: absolute;
+            left: 6px;
+            top: 3px;
+            white-space: nowrap;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, .7);
+            pointer-events: none;
+            max-width: 90%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .clip .clip-icons {
+            position: absolute;
+            right: 4px;
+            bottom: 2px;
+            font-size: 10px;
+            opacity: .85;
+        }
+
+        .clip .clip-gear {
+            position: absolute;
+            top: 1px;
+            right: 1px;
+            width: 30px;
+            height: 30px;
+            border-radius: 7px;
+            background: rgba(0, 0, 0, .55);
+            border: 1px solid rgba(255, 255, 255, .35);
+            color: #fff;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 4;
+            padding: 0;
+            line-height: 1;
+        }
+
+        .clip .clip-gear:active {
+            background: rgba(0, 0, 0, .7);
+        }
+
+        .clip .handle {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 14px;
+            z-index: 3;
+            background: rgba(255, 255, 255, .18);
+        }
+
+        .clip .handle.l {
+            left: 0;
+            border-radius: 8px 0 0 8px;
+        }
+
+        .clip .handle.r {
+            right: 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .playhead {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--accent2);
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .playhead::before {
+            content: '';
+            position: absolute;
+            top: -3px;
+            left: -5px;
+            width: 12px;
+            height: 12px;
+            background: var(--accent2);
+            border-radius: 2px;
+        }
+
+        .snapline {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #fff;
+            z-index: 11;
+            pointer-events: none;
+            box-shadow: 0 0 6px #fff;
+        }
+
+        /* ---------- BOTTOM SHEET ---------- */
+        .sheet-bg {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .5);
+            z-index: 2000;
+            display: flex;
+            align-items: flex-end;
+            opacity: 0;
+            transition: opacity .2s;
+        }
+
+        .sheet-bg.show {
+            opacity: 1;
+        }
+
+        .sheet {
+            background: var(--bg2);
+            width: 100%;
+            max-height: 78vh;
+            border-radius: 18px 18px 0 0;
+            display: flex;
+            flex-direction: column;
+            transform: translateY(100%);
+            transition: transform .22s ease;
+            box-shadow: 0 -10px 40px rgba(0, 0, 0, .5);
+        }
+
+        .sheet-bg.show .sheet {
+            transform: translateY(0);
+        }
+
+        .sheet-handle {
+            width: 40px;
+            height: 4px;
+            background: var(--line2);
+            border-radius: 2px;
+            margin: 10px auto 4px;
+            flex: 0 0 auto;
+        }
+
+        .sheet-head {
+            display: flex;
+            align-items: center;
+            padding: 6px 16px 10px;
+            font-size: 15px;
+            font-weight: 600;
+            flex: 0 0 auto;
+        }
+
+        .sheet-head .sheet-close {
+            margin-left: auto;
+            background: var(--bg3);
+            border: none;
+            color: var(--txt-dim);
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            font-size: 15px;
+        }
+
+        .sheet-body {
+            overflow-y: auto;
+            padding: 4px 16px 24px;
+        }
+
+        .sheet-tabs {
+            display: flex;
+            gap: 6px;
+            padding: 0 16px 10px;
+            overflow-x: auto;
+            flex: 0 0 auto;
+        }
+
+        .sheet-tab {
+            flex: 0 0 auto;
+            background: var(--bg3);
+            border: 1px solid var(--line2);
+            color: var(--txt-dim);
+            padding: 0 14px;
+            height: 38px;
+            border-radius: 19px;
+            font-size: 13px;
+            white-space: nowrap;
+        }
+
+        .sheet-tab.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #fff;
+        }
+
+        .grid3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+        }
+
+        .grid4 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 8px;
+        }
+
+        .opt-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            background: var(--bg3);
+            border: 1px solid var(--line2);
+            color: var(--txt);
+            border-radius: var(--radius-sm);
+            padding: 14px 4px;
+            font-size: 12px;
+            min-height: 74px;
+        }
+
+        .opt-btn .ic {
+            font-size: 24px;
+        }
+
+        .opt-btn:active {
+            background: var(--bg4);
+        }
+
+        .opt-btn.active {
+            border-color: var(--accent);
+            background: rgba(124, 92, 255, .15);
+        }
+
+        .panel-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            color: var(--txt-faint);
+            margin: 14px 0 8px;
+        }
+
+        .panel-title:first-child {
+            margin-top: 0;
+        }
+
+        .field {
+            margin-bottom: 16px;
+        }
+
+        .field label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12.5px;
+            color: var(--txt-dim);
+            margin-bottom: 8px;
+        }
+
+        .field label span {
+            color: var(--accent2);
+            font-family: monospace;
+        }
+
+        input[type=range] {
+            width: 100%;
+            height: 6px;
+            -webkit-appearance: none;
+            background: var(--line2);
+            border-radius: 3px;
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: var(--accent);
+            border: 3px solid rgba(255, 255, 255, .2);
+        }
+
+        textarea,
+        input[type=text] {
+            width: 100%;
+            background: var(--bg3);
+            border: 1px solid var(--line2);
+            color: var(--txt);
+            padding: 12px;
+            border-radius: var(--radius-sm);
+            font-size: 15px;
+        }
+
+        textarea {
+            min-height: 70px;
+            resize: vertical;
+        }
+
+        .btn-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .chip {
+            background: var(--bg3);
+            border: 1px solid var(--line2);
+            color: var(--txt-dim);
+            padding: 0 14px;
+            height: 42px;
+            border-radius: 21px;
+            font-size: 13.5px;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .chip.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #fff;
+        }
+
+        .row-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .media-item {
+            position: relative;
+            background: var(--bg3);
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            overflow: hidden;
+            aspect-ratio: 1/1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .media-item img,
+        .media-item video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .media-item .mi-label {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, .65);
+            font-size: 9px;
+            padding: 3px 5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .drop-zone {
+            border: 1.5px dashed var(--line2);
+            border-radius: var(--radius-sm);
+            padding: 22px 10px;
+            text-align: center;
+            font-size: 14px;
+            color: var(--txt-dim);
+        }
+
+        .note {
+            font-size: 12px;
+            color: var(--txt-faint);
+            line-height: 1.5;
+            margin-top: 6px;
+            padding: 10px;
+            background: var(--bg3);
+            border-radius: var(--radius-sm);
+            border-left: 2px solid var(--accent);
+        }
+
+        .empty-hint {
+            font-size: 13px;
+            color: var(--txt-faint);
+            text-align: center;
+            padding: 24px 10px;
+        }
+
+        /* ---------- TOAST ---------- */
+        .toast-stack {
+            position: fixed;
+            bottom: 18px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            z-index: 4000;
+            align-items: center;
+            pointer-events: none;
+        }
+
+        .toast {
+            background: var(--bg4);
+            border: 1px solid var(--line2);
+            padding: 9px 16px;
+            border-radius: 20px;
+            font-size: 12.5px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, .4);
+            animation: toastin .2s ease;
+        }
+
+        .toast.err {
+            border-color: var(--danger);
+            color: #ffd6dd;
+        }
+
+        @keyframes toastin {
+            from {
+                opacity: 0;
+                transform: translateY(8px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+
+        /* progress overlay */
+        #exportOverlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .85);
+            z-index: 5000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            color: #fff;
+        }
+
+        #exportOverlay .bar {
+            width: 70%;
+            max-width: 320px;
+            height: 10px;
+            background: var(--bg4);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        #exportOverlay .bar-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--accent), var(--accent2));
+            transition: width .15s;
+        }
+
+        .fullscreen-mode .topbar,
+        .fullscreen-mode .timeline-wrap {
+            display: none !important;
+        }
+
+        #btnExitFS {
+            position: fixed;
+            top: 12px;
+            right: 12px;
+            z-index: 1500;
+            background: rgba(0, 0, 0, .6);
+            border: 1.5px solid rgba(255, 255, 255, .3);
+            color: #fff;
+            padding: 0 14px;
+            height: 42px;
+            border-radius: 21px;
+            font-size: 13px;
+            display: none;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .fullscreen-mode #btnExitFS {
+            display: flex;
+        }
+
+        #btnStopSubs {
+            position: fixed;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 3500;
+            background: var(--danger);
+            border: none;
+            color: #fff;
+            padding: 0 18px;
+            height: 44px;
+            border-radius: 22px;
+            font-size: 13.5px;
+            font-weight: 600;
+            display: none;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, .5);
+        }
+
+        #btnStopSubs.show {
+            display: flex;
+        }
+
+        #btnStopSubs .dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: #fff;
+            animation: dotpulse 1s infinite;
+        }
+
+        @keyframes dotpulse {
+
+            0%,
+            100% {
+                opacity: 1
+            }
+
+            50% {
+                opacity: .3
+            }
+        }
+
+        body.theme-light {
+            --bg: #eef0f4;
+            --bg2: #fff;
+            --bg3: #f4f5f8;
+            --bg4: #e8eaf0;
+            --line: #e3e6ec;
+            --line2: #d2d6e0;
+            --txt: #1a1c24;
+            --txt-dim: #585d6b;
+            --txt-faint: #8c91a0;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+
+        <div class="topbar">
+            <button class="tb-btn" id="btnUndo" title="Отменить">↶</button>
+            <button class="tb-btn" id="btnRedo" title="Повторить">↷</button>
+            <span class="tb-spacer"></span>
+            <span id="autosaveTag">Сохранено</span>
+            <button class="tb-btn" id="btnTheme">🌙</button>
+            <button class="tb-btn" id="btnFullscreen">⛶</button>
+            <button class="tb-btn" id="btnAI">🤖</button>
+            <button class="tb-btn primary" id="btnExport">Экспорт</button>
+        </div>
+
+        <div class="center">
+            <div class="preview-wrap" id="previewWrap">
+                <canvas id="stage" width="1280" height="720"></canvas>
+                <div id="xformBox" class="xform-box hidden">
+                    <div class="xform-handle nw" data-handle="nw"></div>
+                    <div class="xform-handle ne" data-handle="ne"></div>
+                    <div class="xform-handle sw" data-handle="sw"></div>
+                    <div class="xform-handle se" data-handle="se"></div>
+                    <div class="xform-rotate" data-handle="rotate"></div>
+                    <button type="button" id="xformGear" class="xform-gear" title="Настройки">⚙</button>
+                </div>
+            </div>
+            <div class="transport">
+                <button class="transport-btn" id="btnToStart">⏮</button>
+                <button class="transport-btn play" id="btnPlay">▶</button>
+                <span class="tcode" id="tcode">00:00 / 00:00</span>
+                <button class="ratio-btn" id="btnBg">🎨 Фон</button>
+                <button class="ratio-btn" id="btnRatio">16:9</button>
+            </div>
+        </div>
+
+        <div class="timeline-wrap">
+            <div class="timeline-toolbar">
+                <button class="tb-btn wide" id="btnAddSheet">＋ Добавить</button>
+                <button class="tb-btn" id="btnSplit" title="Разрезать">✂️</button>
+                <button class="tb-btn" id="btnDup" title="Дублировать">⧉</button>
+                <button class="tb-btn" id="btnDel" title="Удалить">🗑</button>
+            </div>
+            <div class="tl-scroll" id="tlScroll">
+                <div class="tl-heads" id="tlHeads">
+                    <div class="tl-ruler-spacer"></div>
+                </div>
+                <div class="tl-body" id="tlBody">
+                    <div class="tl-ruler" id="tlRuler"></div>
+                    <div class="tl-tracks" id="tlTracks"></div>
+                    <div class="playhead" id="playhead" style="left:0"></div>
+                    <div class="snapline hidden" id="snapline"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <button id="btnExitFS">✕ Выйти</button>
+    <button id="btnStopSubs"><span class="dot"></span> Остановить субтитры</button>
+    <input type="file" id="fileInputMain" multiple accept="video/*,image/*" class="hidden">
+    <input type="file" id="fileInputAudio" accept="audio/*" class="hidden">
+    <input type="file" id="fileInputSticker" accept="image/*" class="hidden">
+    <div id="mediaPool" style="position:fixed;left:-9999px;top:-9999px;width:2px;height:2px;overflow:hidden;"></div>
+    <div class="toast-stack" id="toastStack"></div>
+    <div id="exportOverlay" class="hidden">
+        <div style="font-size:15px">Рендер видео…</div>
+        <div class="bar">
+            <div class="bar-fill" id="exportBarFill"></div>
+        </div>
+        <div id="exportPct" style="font-size:13px;color:#aaa">0%</div>
+    </div>
+
+    <script>
+        /* =================== HELPERS =================== */
+        const $ = (s, r = document) => r.querySelector(s);
+        const $all = (s, r = document) => [...r.querySelectorAll(s)];
+        const uid = () => 'id' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+        const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+        const lerp = (a, b, t) => a + (b - a) * t;
+        function fmtTime(t) { if (!isFinite(t) || t < 0) t = 0; const m = Math.floor(t / 60), s = Math.floor(t % 60); return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`; }
+        let lastToast = '', lastToastTime = 0;
+        function toast(msg, isErr = false) {
+            const now = Date.now();
+            if (msg === lastToast && now - lastToastTime < 1500) return; // dedupe / anti-spam
+            lastToast = msg; lastToastTime = now;
+            const stack = $('#toastStack');
+            if (stack.children.length >= 2) stack.firstChild.remove();
+            const el = document.createElement('div'); el.className = 'toast' + (isErr ? ' err' : ''); el.textContent = msg;
+            stack.appendChild(el);
+            setTimeout(() => { el.style.opacity = '0'; el.style.transition = 'opacity .3s'; setTimeout(() => el.remove(), 300); }, 2200);
+        }
+        function easeFn(name) {
+            switch (name) {
+                case 'easeIn': return t => t * t;
+                case 'easeOut': return t => 1 - (1 - t) * (1 - t);
+                default: return t => t;
+            }
+        }
+
+        /* =================== STATE =================== */
+        const TRACK_DEFS = [
+            { type: 'media', name: 'Медиа', icon: '🎬' },
+            { type: 'audio', name: 'Звук', icon: '🎵' },
+            { type: 'overlay', name: 'Текст', icon: '🔤' },
+        ];
+        const RATIOS = ['16:9', '9:16', '1:1', '4:5'];
+        const state = {
+            canvasW: 1280, canvasH: 720, ratio: '16:9', bgColor: '#000000', bgMode: 'blur',
+            tracks: TRACK_DEFS.map(d => ({ id: uid(), type: d.type, name: d.name, clips: [] })),
+            duration: 10, currentTime: 0, playing: false, pxPerSec: 55,
+            selectedClipId: null, mediaLibrary: [], history: [], future: [],
+        };
+        const HISTORY_LIMIT = 50;
+        function snapshot() { return JSON.stringify(state, (k, v) => { if (k === 'el') return undefined; if (k === 'history' || k === 'future') return undefined; return v; }); }
+        let suppressHistory = false;
+        function pushHistory() { if (suppressHistory) return; state.history.push(snapshot()); if (state.history.length > HISTORY_LIMIT) state.history.shift(); state.future.length = 0; scheduleAutosave(); }
+        function restoreSnapshot(json) {
+            const data = JSON.parse(json);
+            suppressHistory = true;
+            const oldMediaById = {}; state.mediaLibrary.forEach(m => { oldMediaById[m.id] = m.el; });
+            Object.assign(state, data);
+            state.mediaLibrary.forEach(m => { if (!m.el) m.el = oldMediaById[m.id]; });
+            state.tracks.forEach(tr => tr.clips.forEach(c => { const lib = state.mediaLibrary.find(m => m.id === c.mediaId); if (lib && lib.el) c.el = lib.el; }));
+            suppressHistory = false;
+            renderAll();
+        }
+        function renderAll() {
+            stage.width = state.canvasW; stage.height = state.canvasH;
+            renderTracks(); renderTimeline(); renderFrame(state.currentTime);
+        }
+        function undo() { if (!state.history.length) return; state.future.push(snapshot()); restoreSnapshot(state.history.pop()); }
+        function redo() { if (!state.future.length) return; state.history.push(snapshot()); restoreSnapshot(state.future.pop()); }
+
+        let autosaveTimer = null;
+        function scheduleAutosave() {
+            clearTimeout(autosaveTimer);
+            $('#autosaveTag').textContent = 'Сохранение…';
+            autosaveTimer = setTimeout(async () => {
+                try { await idbSaveProject(); $('#autosaveTag').textContent = 'Сохранено'; }
+                catch (e) { $('#autosaveTag').textContent = 'Не сохранено'; }
+            }, 800);
+        }
+
+        /* =================== INDEXEDDB =================== */
+        const IDB_NAME = 'videoforge_db2', IDB_VERSION = 1;
+        const idbReady = new Promise((resolve, reject) => {
+            if (!('indexedDB' in window)) { reject(new Error('no idb')); return; }
+            const req = indexedDB.open(IDB_NAME, IDB_VERSION);
+            req.onupgradeneeded = () => { const db = req.result; if (!db.objectStoreNames.contains('media')) db.createObjectStore('media', { keyPath: 'id' }); if (!db.objectStoreNames.contains('project')) db.createObjectStore('project'); };
+            req.onsuccess = () => resolve(req.result); req.onerror = () => reject(req.error);
+        });
+        async function idbSaveMediaBlob(id, name, kind, blob) {
+            try { const db = await idbReady; await new Promise((res, rej) => { const tx = db.transaction('media', 'readwrite'); tx.objectStore('media').put({ id, name, kind, blob }); tx.oncomplete = res; tx.onerror = () => rej(tx.error); }); } catch (e) { }
+        }
+        async function idbSaveProject() {
+            const db = await idbReady;
+            const meta = {
+                canvasW: state.canvasW, canvasH: state.canvasH, ratio: state.ratio, bgColor: state.bgColor, bgMode: state.bgMode, tracks: state.tracks, duration: state.duration,
+                mediaMeta: state.mediaLibrary.map(m => ({ id: m.id, name: m.name, kind: m.kind, duration: m.duration, thumb: m.thumb }))
+            };
+            await new Promise((res, rej) => { const tx = db.transaction('project', 'readwrite'); tx.objectStore('project').put(JSON.stringify(meta, (k, v) => k === 'el' ? undefined : v), 'current'); tx.oncomplete = res; tx.onerror = () => rej(tx.error); });
+        }
+        async function idbLoadProjectMeta() { const db = await idbReady; return new Promise((res, rej) => { const tx = db.transaction('project', 'readonly'); const req = tx.objectStore('project').get('current'); req.onsuccess = () => res(req.result ? JSON.parse(req.result) : null); req.onerror = () => rej(req.error); }); }
+        async function idbLoadAllMedia() { const db = await idbReady; return new Promise((res, rej) => { const tx = db.transaction('media', 'readonly'); const req = tx.objectStore('media').getAll(); req.onsuccess = () => res(req.result || []); req.onerror = () => rej(req.error); }); }
+        async function idbClearAll() { const db = await idbReady; await Promise.all(['media', 'project'].map(s => new Promise((res, rej) => { const tx = db.transaction(s, 'readwrite'); tx.objectStore(s).clear(); tx.oncomplete = res; tx.onerror = () => rej(tx.error); }))); }
+        async function tryRestoreAutosave() {
+            let meta; try { meta = await idbLoadProjectMeta(); } catch (e) { return false; }
+            if (!meta || !meta.tracks || !meta.tracks.some(t => t.clips && t.clips.length)) return false;
+            let recs = []; try { recs = await idbLoadAllMedia(); } catch (e) { }
+            const byId = {};
+            for (const rec of recs) {
+                try {
+                    const url = URL.createObjectURL(rec.blob); let el;
+                    if (rec.kind === 'video') { el = document.createElement('video'); el.src = url; el.playsInline = true; el.preload = 'auto'; $('#mediaPool').appendChild(el); await new Promise(r => { el.onloadedmetadata = r; el.onerror = r; }); }
+                    else if (rec.kind === 'audio') { el = document.createElement('audio'); el.src = url; el.preload = 'auto'; $('#mediaPool').appendChild(el); await new Promise(r => { el.onloadedmetadata = r; el.onerror = r; }); }
+                    else { el = new Image(); el.src = url; await new Promise(r => { el.onload = r; el.onerror = r; }); }
+                    const mi = (meta.mediaMeta || []).find(m => m.id === rec.id) || {};
+                    byId[rec.id] = { id: rec.id, name: rec.name, kind: rec.kind, url, el, duration: el.duration || mi.duration || 5, thumb: mi.thumb };
+                } catch (e) { }
+            }
+            state.mediaLibrary = Object.values(byId);
+            state.tracks = meta.tracks; state.duration = meta.duration || 10;
+            state.canvasW = meta.canvasW || state.canvasW; state.canvasH = meta.canvasH || state.canvasH; state.ratio = meta.ratio || state.ratio; state.bgColor = meta.bgColor || state.bgColor; state.bgMode = meta.bgMode || state.bgMode;
+            state.tracks.forEach(tr => tr.clips.forEach(c => { const lib = state.mediaLibrary.find(m => m.id === c.mediaId); if (lib) c.el = lib.el; }));
+            renderAll();
+            return true;
+        }
+
+        /* =================== TRACKS / CLIPS =================== */
+        function trackByType(type) { return state.tracks.find(t => t.type === type); }
+        function makeClip(kind, opts) {
+            const trackType = kind === 'video' || kind === 'photo' ? 'media' : (kind === 'music' || kind === 'voice') ? 'audio' : 'overlay';
+            const track = trackByType(trackType);
+            return {
+                id: uid(), trackId: track.id, kind, mediaId: opts.mediaId || null, name: opts.name || 'Клип',
+                start: opts.start ?? 0, dur: opts.dur ?? 3, sourceDur: opts.sourceDur ?? (opts.dur ?? 3), trimStart: opts.trimStart ?? 0,
+                speed: 1, reverse: false, volume: 100, fadeIn: 0, fadeOut: 0,
+                transform: { x: 0, y: 0, scaleX: 1, scaleY: 1, rotation: 0, opacity: 100, radius: 0, flipH: false, flipV: false },
+                crop: { l: 0, t: 0, r: 0, b: 0 },
+                color: { brightness: 0, contrast: 0, saturation: 0, warmth: 0, vignette: 0, grain: 0, filter: '' },
+                effects: [],
+                transitionIn: null, transitionOut: null,
+                kenBurns: false,
+                text: kind === 'text' ? { content: opts.text || 'Текст', font: 'Inter', size: 48, color: '#ffffff', stroke: '#000000', useStroke: true, useShadow: false, animIn: 'fade', animOut: 'fade' } : null,
+                sticker: kind === 'sticker' ? { emoji: opts.emoji || null, url: opts.url || null } : null,
+                el: opts.el || null,
+            };
+        }
+        const SNAP_PX = 14;
+        function addClipToTrack(clip, dropTime) {
+            const track = state.tracks.find(t => t.id === clip.trackId);
+            clip.start = Math.max(0, dropTime);
+            snapAndResolve(track, clip);
+            track.clips.push(clip); track.clips.sort((a, b) => a.start - b.start);
+            recalcDuration(); pushHistory(); renderTimeline(); selectClip(clip.id); seekTo(clip.start);
+        }
+        function snapAndResolve(track, moving) {
+            // snap to neighbor edges within track
+            const snapT = SNAP_PX / state.pxPerSec;
+            let best = null;
+            track.clips.forEach(c => {
+                if (c.id === moving.id) return;
+                [[c.start, moving.start], [c.start + c.dur, moving.start], [c.start, moving.start + moving.dur], [c.start + c.dur, moving.start + moving.dur]].forEach(([target, cur]) => {
+                    const d = Math.abs(target - cur);
+                    if (d < snapT && (!best || d < best.d)) best = { d, target, cur };
+                });
+            });
+            if (best) moving.start += (best.target - best.cur);
+            moving.start = Math.max(0, moving.start);
+            // prevent overlap on same track: push into nearest free gap instead of overlapping
+            let again = true, guard = 0;
+            while (again && guard < 20) {
+                again = false; guard++;
+                for (const c of track.clips) {
+                    if (c.id === moving.id) continue;
+                    const overlap = Math.min(c.start + c.dur, moving.start + moving.dur) - Math.max(c.start, moving.start);
+                    if (overlap > 0.01) {
+                        if (moving.start < c.start + c.dur / 2) { moving.start = Math.max(0, c.start - moving.dur); }
+                        else { moving.start = c.start + c.dur; }
+                        again = true;
+                    }
+                }
+            }
+        }
+        function recalcDuration() { let max = 4; state.tracks.forEach(tr => tr.clips.forEach(c => max = Math.max(max, c.start + c.dur))); state.duration = max + 1.5; }
+        function findClip(id) { for (const tr of state.tracks) for (const c of tr.clips) if (c.id === id) return { clip: c, track: tr }; return null; }
+        function selectClip(id) { state.selectedClipId = id; renderTimeline(); updateXformOverlay(); }
+        function deleteClip(id) {
+            const f = findClip(id); if (!f) return;
+            const { clip: removed, track } = f;
+            track.clips = track.clips.filter(c => c.id !== id);
+            // Ripple-delete: подтягиваем все клипы ПОСЛЕ удалённого на этой же дорожке,
+            // чтобы не образовывалась пустая "дыра" (которая выглядит как ещё один баг).
+            track.clips.forEach(c => { if (c.start >= removed.start + removed.dur - 0.01) c.start -= removed.dur; });
+            if (state.selectedClipId === id) state.selectedClipId = null;
+            recalcDuration(); pushHistory(); renderTimeline(); closeSheet();
+        }
+        function duplicateClip(id) {
+            const f = findClip(id); if (!f) return;
+            const copy = JSON.parse(JSON.stringify(f.clip, (k, v) => k === 'el' ? undefined : v));
+            copy.id = uid(); copy.el = f.clip.el; copy.start = f.clip.start + f.clip.dur + 0.05;
+            f.track.clips.push(copy); f.track.clips.sort((a, b) => a.start - b.start);
+            recalcDuration(); pushHistory(); renderTimeline(); selectClip(copy.id);
+        }
+        function splitClipAt(id, time) {
+            const f = findClip(id); if (!f) return;
+            const c = f.clip;
+            if (time <= c.start + 0.05 || time >= c.start + c.dur - 0.05) { toast('Поставьте курсор внутри клипа', true); return; }
+            const rel = time - c.start;
+            const copy = JSON.parse(JSON.stringify(c, (k, v) => k === 'el' ? undefined : v));
+            copy.id = uid(); copy.el = c.el; copy.start = time; copy.dur = c.dur - rel; copy.trimStart = c.trimStart + rel * c.speed;
+            c.dur = rel;
+            f.track.clips.push(copy); f.track.clips.sort((a, b) => a.start - b.start);
+            pushHistory(); renderTimeline(); toast('Разрезано');
+        }
+
+        /* =================== IMPORT / LIBRARY =================== */
+        // ВАЖНО: при выборе НЕСКОЛЬКИХ файлов раньше каждый файл грузился и добавлялся на
+        // таймлайн НЕЗАВИСИМО и асинхронно (кто быстрее прогрузит metadata — тот и встанет
+        // первым). Если два файла грузились почти одновременно, оба читали одно и то же
+        // "текущее" место на таймлайне ДО того, как первый из них успевал там закрепиться —
+        // отсюда наложение клипов друг на друга. Теперь импорт строго ПОСЛЕДОВАТЕЛЬНЫЙ:
+        // await на каждый файл — следующий начинает грузиться только когда предыдущий уже
+        // полностью встал на таймлайн. Порядок = порядок выбора, наложений быть не может.
+        async function importFiles(fileList, asKindHint) {
+            const files = [...fileList];
+            for (const file of files) {
+                await importSingleFile(file, asKindHint);
+            }
+        }
+        function importSingleFile(file, asKindHint) {
+            return new Promise(resolve => {
+                const url = URL.createObjectURL(file);
+                const kind = asKindHint || (file.type.startsWith('video') ? 'video' : file.type.startsWith('audio') ? 'audio' : 'image');
+                const id = uid();
+                idbSaveMediaBlob(id, file.name, kind, file);
+                if (kind === 'video') {
+                    const v = document.createElement('video'); v.src = url; v.preload = 'auto'; v.playsInline = true; v.setAttribute('webkit-playsinline', 'true');
+                    $('#mediaPool').appendChild(v);
+                    const onReady = () => {
+                        v.removeEventListener('loadedmetadata', onReady);
+                        const lib = { id, name: file.name, kind, url, el: v, duration: v.duration };
+                        state.mediaLibrary.push(lib); captureThumb(v, lib); quickAdd(lib); resolve();
+                    };
+                    v.addEventListener('loadedmetadata', onReady);
+                    v.addEventListener('error', () => { toast('Не удалось загрузить файл: ' + file.name, true); resolve(); });
+                } else if (kind === 'audio') {
+                    const a = document.createElement('audio'); a.src = url; a.preload = 'auto'; $('#mediaPool').appendChild(a);
+                    a.addEventListener('loadedmetadata', () => { const lib = { id, name: file.name, kind, url, el: a, duration: a.duration }; state.mediaLibrary.push(lib); quickAdd(lib); resolve(); });
+                    a.addEventListener('error', () => { toast('Не удалось загрузить аудио: ' + file.name, true); resolve(); });
+                } else {
+                    const img = new Image(); img.src = url;
+                    img.onload = () => { const lib = { id, name: file.name, kind: 'image', url, el: img, duration: 5, thumb: url }; state.mediaLibrary.push(lib); quickAdd(lib); resolve(); };
+                    img.onerror = () => { toast('Не удалось загрузить фото: ' + file.name, true); resolve(); };
+                }
+            });
+        }
+
+        /* =================== ПРИЁМ ФАЙЛОВ ИЗ ГАЛЕРЕИ =================== */
+        // Галерея (отдельное PWA-приложение) кладёт выбранные фото/видео в общую IndexedDB
+        // 'videoforge_handoff' (работает только если оба приложения на одном домене).
+        // При каждом запуске редактор проверяет: не ждут ли там файлы — и, если да, импортирует
+        // их СТРОГО в том порядке, в котором их выбрали в галерее.
+        function openHandoffDB() {
+            return new Promise((resolve, reject) => {
+                const req = indexedDB.open('videoforge_handoff', 1);
+                req.onupgradeneeded = () => { if (!req.result.objectStoreNames.contains('items')) req.result.createObjectStore('items'); };
+                req.onsuccess = () => resolve(req.result);
+                req.onerror = () => reject(req.error);
+            });
+        }
+        async function checkGalleryHandoff() {
+            let db; try { db = await openHandoffDB(); } catch (e) { return; }
+            let queue;
+            try {
+                queue = await new Promise((res, rej) => {
+                    const tx = db.transaction('items', 'readwrite');
+                    const rq = tx.objectStore('items').get('queue');
+                    rq.onsuccess = () => { tx.objectStore('items').delete('queue'); res(rq.result); };
+                    rq.onerror = () => rej(rq.error);
+                });
+            } catch (e) { return; }
+            if (!queue || !queue.length) return;
+            const files = queue.map(q => new File([q.blob], q.name, { type: q.type, lastModified: q.lastModified || Date.now() }));
+            toast('Импортирую ' + files.length + ' из галереи…');
+            await importFiles(files);
+            toast('Готово: добавлено ' + files.length);
+        }
+        function captureThumb(video, lib) {
+            const c = document.createElement('canvas'); c.width = 80; c.height = 80;
+            const onSeek = () => { try { c.getContext('2d').drawImage(video, 0, 0, 80, 80); lib.thumb = c.toDataURL(); } catch (e) { } video.removeEventListener('seeked', onSeek); };
+            video.addEventListener('seeked', onSeek);
+            try { video.currentTime = Math.min(0.3, (video.duration || 1) / 4); } catch (e) { }
+        }
+        function quickAdd(lib) {
+            const kind = lib.kind === 'video' ? 'video' : lib.kind === 'audio' ? 'music' : 'photo';
+            const clip = makeClip(kind, { mediaId: lib.id, name: lib.name, dur: kind === 'photo' ? 5 : lib.duration, sourceDur: lib.duration, el: lib.el });
+            addClipToTrack(clip, state.currentTime);
+            closeSheet();
+        }
+
+        /* =================== TIMELINE RENDER =================== */
+        function timeToX(t) { return t * state.pxPerSec; }
+        function xToTime(x) { return x / state.pxPerSec; }
+        function renderTracks() {
+            const heads = $('#tlHeads'); heads.innerHTML = '<div class="tl-ruler-spacer"></div>';
+            TRACK_DEFS.forEach(d => { const div = document.createElement('div'); div.className = 'track-head'; div.textContent = d.icon; heads.appendChild(div); });
+        }
+        function renderTimeline() { renderRuler(); renderClipLanes(); updatePlayheadPos(); $('#tcode').textContent = `${fmtTime(state.currentTime)} / ${fmtTime(state.duration)}`; }
+        function renderRuler() {
+            const ruler = $('#tlRuler'); ruler.innerHTML = ''; ruler.style.width = timeToX(state.duration + 8) + 'px';
+            let step = state.pxPerSec < 25 ? 5 : state.pxPerSec < 45 ? 2 : 1;
+            for (let t = 0; t <= state.duration + 8; t += step) {
+                const tick = document.createElement('div'); tick.className = 'tick'; tick.style.left = timeToX(t) + 'px'; tick.textContent = fmtTime(t); ruler.appendChild(tick);
+            }
+            ruler.onpointerdown = e => {
+                try { ruler.setPointerCapture(e.pointerId); } catch (err) { }
+                const rect = ruler.getBoundingClientRect();
+                const move = ev => seekTo(xToTime(ev.clientX - rect.left));
+                move(e);
+                const up = () => { window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); };
+                window.addEventListener('pointermove', move); window.addEventListener('pointerup', up);
+            };
+        }
+        const TRACK_COLORS = { media: '#3b6fd6', audio: '#d6a23b', overlay: '#c97bd1' };
+        function renderClipLanes() {
+            const wrap = $('#tlTracks'); wrap.innerHTML = ''; wrap.style.width = timeToX(state.duration + 8) + 'px';
+            state.tracks.forEach(tr => {
+                const lane = document.createElement('div'); lane.className = 'track-lane'; lane.dataset.trackId = tr.id;
+                tr.clips.forEach(c => lane.appendChild(renderClipEl(c, tr)));
+                wrap.appendChild(lane);
+            });
+            wrap.style.height = (state.tracks.length * 50) + 'px';
+        }
+        function showSnapline(x) { const sl = $('#snapline'); sl.style.left = x + 'px'; sl.classList.remove('hidden'); }
+        function hideSnapline() { $('#snapline').classList.add('hidden'); }
+        function renderClipEl(c, tr) {
+            const div = document.createElement('div'); div.className = 'clip' + (c.id === state.selectedClipId ? ' selected' : '');
+            div.style.left = timeToX(c.start) + 'px'; div.style.width = Math.max(8, timeToX(c.dur)) + 'px'; div.style.background = TRACK_COLORS[tr.type] || '#666';
+            let label = c.kind === 'text' ? (c.text.content.slice(0, 16) || 'Текст') : c.name;
+            let icons = '';
+            if (c.transitionIn || c.transitionOut) icons += '↔';
+            if (c.effects && c.effects.length) icons += '✨';
+            if (c.kenBurns) icons += '🎥';
+            div.innerHTML = `<span class="clip-label">${label}</span><span class="clip-icons">${icons}</span><button type="button" class="clip-gear" title="Настройки">⚙</button><div class="handle l"></div><div class="handle r"></div>`;
+
+            const gearBtn = div.querySelector('.clip-gear');
+            gearBtn.onpointerdown = e => { e.stopPropagation(); };
+            gearBtn.onclick = e => { e.stopPropagation(); selectClip(c.id); openClipProps(c.id); };
+
+            div.onpointerdown = e => {
+                if (e.target.classList.contains('handle') || e.target.classList.contains('clip-gear')) return;
+                e.stopPropagation(); selectClip(c.id);
+                try { div.setPointerCapture(e.pointerId); } catch (err) { }
+                const startX = e.clientX, startLeft = c.start;
+                let moved = false;
+                const onMove = ev => {
+                    ev.preventDefault(); moved = true;
+                    let dt = xToTime(ev.clientX - startX);
+                    let newStart = Math.max(0, startLeft + dt);
+                    // live snap preview against other clips on this track + playhead
+                    const snapT = SNAP_PX / state.pxPerSec; let snapped = false;
+                    const candidates = [state.currentTime];
+                    tr.clips.forEach(o => { if (o.id !== c.id) { candidates.push(o.start); candidates.push(o.start + o.dur); } });
+                    for (const cand of candidates) {
+                        if (Math.abs(cand - newStart) < snapT) { newStart = cand; showSnapline(timeToX(cand)); snapped = true; break; }
+                        if (Math.abs((cand - c.dur) - newStart) < snapT) { newStart = cand - c.dur; showSnapline(timeToX(cand)); snapped = true; break; }
+                    }
+                    if (!snapped) hideSnapline();
+                    c.start = newStart;
+                    div.style.left = timeToX(c.start) + 'px';
+                };
+                const onUp = () => {
+                    window.removeEventListener('pointermove', onMove); window.removeEventListener('pointerup', onUp); window.removeEventListener('pointercancel', onUp);
+                    hideSnapline();
+                    if (moved) { snapAndResolve(tr, c); recalcDuration(); pushHistory(); renderTimeline(); }
+                };
+                window.addEventListener('pointermove', onMove, { passive: false });
+                window.addEventListener('pointerup', onUp);
+                window.addEventListener('pointercancel', onUp);
+            };
+            div.ondblclick = () => seekTo(c.start);
+
+            div.querySelector('.handle.l').onpointerdown = e => {
+                e.stopPropagation(); try { e.target.setPointerCapture(e.pointerId); } catch (err) { }
+                const startX = e.clientX, startStart = c.start, startDur = c.dur, startTrim = c.trimStart;
+                const onMove = ev => {
+                    ev.preventDefault();
+                    let dt = xToTime(ev.clientX - startX);
+                    let newStart = clamp(startStart + dt, 0, startStart + startDur - 0.15);
+                    const delta = newStart - startStart;
+                    c.start = newStart; c.dur = startDur - delta; c.trimStart = startTrim + delta * c.speed;
+                    div.style.left = timeToX(c.start) + 'px'; div.style.width = Math.max(8, timeToX(c.dur)) + 'px';
+                };
+                const onUp = () => { window.removeEventListener('pointermove', onMove); window.removeEventListener('pointerup', onUp); window.removeEventListener('pointercancel', onUp); recalcDuration(); pushHistory(); renderTimeline(); };
+                window.addEventListener('pointermove', onMove, { passive: false }); window.addEventListener('pointerup', onUp); window.addEventListener('pointercancel', onUp);
+            };
+            div.querySelector('.handle.r').onpointerdown = e => {
+                e.stopPropagation(); try { e.target.setPointerCapture(e.pointerId); } catch (err) { }
+                const startX = e.clientX, startDur = c.dur;
+                const maxDur = c.sourceDur ? (c.sourceDur - c.trimStart) / c.speed : Infinity;
+                const onMove = ev => {
+                    ev.preventDefault();
+                    let dt = xToTime(ev.clientX - startX);
+                    c.dur = clamp(startDur + dt, 0.15, maxDur === Infinity ? 9999 : maxDur);
+                    div.style.width = Math.max(8, timeToX(c.dur)) + 'px';
+                };
+                const onUp = () => { window.removeEventListener('pointermove', onMove); window.removeEventListener('pointerup', onUp); window.removeEventListener('pointercancel', onUp); recalcDuration(); pushHistory(); renderTimeline(); };
+                window.addEventListener('pointermove', onMove, { passive: false }); window.addEventListener('pointerup', onUp); window.addEventListener('pointercancel', onUp);
+            };
+            return div;
+        }
+        function updatePlayheadPos() { $('#playhead').style.left = timeToX(state.currentTime) + 'px'; }
+
+        /* =================== KEYBOARD (desktop testing only) =================== */
+        window.addEventListener('keydown', e => {
+            if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) return;
+            if (e.code === 'Space') { e.preventDefault(); togglePlay(); }
+        });
+
+        /* =================== RENDER ENGINE =================== */
+        const stage = $('#stage'); const ctx = stage.getContext('2d');
+        let lastFrameTs = null;
+        const audioCtxMain = new (window.AudioContext || window.webkitAudioContext)();
+        const mediaSourceByEl = new WeakMap(); // el -> {src, gain} — постоянная маршрутизация Web Audio на элемент
+        let isExporting = false;
+
+        function activeClipsAt(time) {
+            const result = [];
+            state.tracks.forEach(tr => tr.clips.forEach(c => { if (time >= c.start - 0.0001 && time < c.start + c.dur + 0.0001) result.push({ clip: c, track: tr }); }));
+            return result;
+        }
+        function localTimeFor(c, globalTime) {
+            let rel = (globalTime - c.start) * (c.speed || 1);
+            if (c.reverse) { const span = c.dur * (c.speed || 1); rel = span - rel; }
+            return (c.trimStart || 0) + rel;
+        }
+        function ensureMediaPlayback(c, globalTime, shouldPlay, track) {
+            if (!c.el || (c.kind !== 'video' && c.kind !== 'music' && c.kind !== 'voice')) return;
+            const el = c.el; const target = localTimeFor(c, globalTime);
+            let vol = (c.volume ?? 100) / 100;
+            const relT = globalTime - c.start;
+            if (c.fadeIn && relT < c.fadeIn) vol *= relT / c.fadeIn;
+            if (c.fadeOut && (c.dur - relT) < c.fadeOut) vol *= Math.max(0, (c.dur - relT) / c.fadeOut);
+            el.volume = clamp(vol, 0, 1); el.muted = false;
+            // допуск рассинхрона увеличен, чтобы не дёргать currentTime каждый кадр и не вызывать заикания/фриз звука
+            const needSeek = !shouldPlay || c.reverse || Math.abs(el.currentTime - target) > 0.35;
+            if (needSeek) {
+                const clampedTarget = clamp(target, 0, (el.duration || target) + 0.05);
+                // fastSeek (где поддерживается браузером) переходит к ближайшему опорному кадру
+                // быстрее, чем точный currentTime — заметно сокращает подтормаживание именно
+                // в момент перехода между кусками после разреза.
+                try {
+                    if (typeof el.fastSeek === 'function') el.fastSeek(clampedTarget);
+                    else el.currentTime = clampedTarget;
+                } catch (e) { try { el.currentTime = clampedTarget; } catch (e2) { } }
+            }
+            if (shouldPlay && !c.reverse) { el.playbackRate = clamp(c.speed || 1, 0.0625, 16); if (el.paused) el.play().catch(() => { }); }
+            else if (!el.paused) { try { el.pause(); } catch (e) { } }
+        }
+        function pauseAllMedia() { state.tracks.forEach(tr => tr.clips.forEach(c => { if (c.el && c.el.pause) try { c.el.pause(); } catch (e) { } })); }
+
+        function buildFilterString(c) {
+            const col = c.color;
+            const active = col.brightness || col.contrast || col.saturation || col.warmth || col.filter;
+            if (!active) return 'none';
+            const b = 1 + col.brightness / 100, ct = 1 + col.contrast / 100, sat = 1 + col.saturation / 100, hue = col.warmth * 0.6;
+            const presets = { vintage: 'sepia(.35) contrast(1.05) saturate(.85) brightness(.97)', cinema: 'contrast(1.15) saturate(.9) brightness(.95)', warm: 'sepia(.18) saturate(1.15) hue-rotate(-8deg)', cool: 'hue-rotate(15deg) saturate(1.05) brightness(1.02)', bw: 'grayscale(1) contrast(1.1)', hdr: 'contrast(1.25) saturate(1.3)', neon: 'saturate(1.6) contrast(1.2) hue-rotate(-10deg)' };
+            const presetCss = (col.filter && presets[col.filter]) ? presets[col.filter] : '';
+            return `brightness(${b}) contrast(${ct}) saturate(${sat}) hue-rotate(${hue}deg) ${presetCss}`;
+        }
+        function getNativeSize(c) {
+            if (c.kind === 'video') { const el = c.el; return { w: (el && el.videoWidth) || state.canvasW, h: (el && el.videoHeight) || state.canvasH }; }
+            if (c.kind === 'photo') { const el = c.el; return { w: (el && el.naturalWidth) || state.canvasW, h: (el && el.naturalHeight) || state.canvasH }; }
+            return null;
+        }
+        function fitContainSize(c) {
+            const nat = getNativeSize(c); if (!nat || !nat.w || !nat.h) return null;
+            const crop = c.crop || { l: 0, t: 0, r: 0, b: 0 };
+            const sw = nat.w * (1 - crop.l - crop.r), sh = nat.h * (1 - crop.t - crop.b);
+            const scale = Math.min(state.canvasW / sw, state.canvasH / sh);
+            return { dw: sw * scale, dh: sh * scale };
+        }
+        // Размытый фон-подложка: сперва картинка уменьшается до маленького скретч-канваса,
+        // и уже ЭТА миниатюра (не полноразмерный видео-кадр) размывается и растягивается на
+        // весь canvas. Блюр всё равно скрывает потерю детализации, зато стоимость операции
+        // падает на порядки — раньше блюр применялся к кадру видео в полном разрешении на
+        // КАЖДОМ requestAnimationFrame, что на телефонах утилизировало GPU/CPU на 100% и
+        // тянуло за собой лаги картинки И заикание звука (браузеру не хватало ресурсов
+        // ровно декодировать/проигрывать аудио, пока JS-поток был занят тяжёлым блюром).
+        let bgSmallCanvas = null, bgSmallCtx = null, bgLastEl = null, bgLastDrawAt = -1;
+        const BG_SMALL_W = 96, BG_UPDATE_MS = 66; // ~15 обновлений подложки в секунду достаточно, т.к. она размыта
+        function drawCoverBlurBackground(c) {
+            if (!c.el || (c.kind !== 'video' && c.kind !== 'photo')) return false;
+            const nat = getNativeSize(c); if (!nat || !nat.w || !nat.h) return false;
+            const cw = state.canvasW, ch = state.canvasH;
+            const smallH = Math.max(1, Math.round(BG_SMALL_W * (nat.h / nat.w)));
+            if (!bgSmallCanvas) { bgSmallCanvas = document.createElement('canvas'); bgSmallCtx = bgSmallCanvas.getContext('2d'); }
+            if (bgSmallCanvas.width !== BG_SMALL_W || bgSmallCanvas.height !== smallH) { bgSmallCanvas.width = BG_SMALL_W; bgSmallCanvas.height = smallH; }
+            const now = performance.now();
+            const needsRedraw = c.el !== bgLastEl || (now - bgLastDrawAt) >= BG_UPDATE_MS;
+            if (needsRedraw) {
+                try { bgSmallCtx.clearRect(0, 0, BG_SMALL_W, smallH); bgSmallCtx.drawImage(c.el, 0, 0, BG_SMALL_W, smallH); bgLastEl = c.el; bgLastDrawAt = now; }
+                catch (e) { return false; }
+            }
+            const scale = Math.max(cw / nat.w, ch / nat.h) * 1.15; // запас 15%, чтобы блюр не показывал чёткий край картинки
+            const dw = nat.w * scale, dh = nat.h * scale;
+            const dx = (cw - dw) / 2, dy = (ch - dh) / 2;
+            try {
+                ctx.save();
+                ctx.filter = 'blur(4px) brightness(0.55)'; // источник уже маленький — большого радиуса блюра не требуется
+                ctx.drawImage(bgSmallCanvas, dx, dy, dw, dh);
+                ctx.restore();
+                return true;
+            } catch (e) { return false; }
+        }
+        function drawClip(entry, globalTime) {
+            const { clip: c } = entry;
+            const relT = globalTime - c.start;
+            ctx.save();
+            let alpha = (c.transform.opacity ?? 100) / 100;
+            alpha *= transitionFactor(c, relT, 'in'); alpha *= transitionFactor(c, relT, 'out');
+            const kf = c.kenBurns ? kenBurnsSample(c, relT) : { x: 0, y: 0, scale: 1 };
+            const cw = state.canvasW, ch = state.canvasH;
+            ctx.globalAlpha = clamp(alpha, 0, 1);
+            ctx.translate(cw / 2 + (c.transform.x + kf.x), ch / 2 + (c.transform.y + kf.y));
+            ctx.rotate(c.transform.rotation * Math.PI / 180);
+            ctx.scale((c.transform.scaleX * kf.scale) * (c.transform.flipH ? -1 : 1), (c.transform.scaleY * kf.scale) * (c.transform.flipV ? -1 : 1));
+            ctx.filter = buildFilterString(c);
+            if (c.kind === 'video' || c.kind === 'photo') drawMediaClip(c, cw, ch);
+            else if (c.kind === 'text') drawTextClip(c, relT);
+            else if (c.kind === 'sticker') drawStickerClip(c);
+            ctx.restore();
+        }
+        function kenBurnsSample(c, relT) {
+            const t = clamp(relT / Math.max(0.01, c.dur), 0, 1);
+            return { x: lerp(0, c._kbDX || 40, t), y: 0, scale: lerp(1, 1.18, t) };
+        }
+        function drawMediaClip(c, cw, ch) {
+            const el = c.el; if (!el) return;
+            let nw = c.kind === 'video' ? (el.videoWidth || cw) : (el.naturalWidth || cw);
+            let nh = c.kind === 'video' ? (el.videoHeight || ch) : (el.naturalHeight || ch);
+            if (!nw || !nh) return;
+            const crop = c.crop || { l: 0, t: 0, r: 0, b: 0 };
+            const sx = nw * crop.l, sy = nh * crop.t, sw = nw * (1 - crop.l - crop.r), sh = nh * (1 - crop.t - crop.b);
+            const scale = Math.min(cw / sw, ch / sh);
+            const dw = sw * scale, dh = sh * scale;
+            if (c.transform.radius > 0) { roundRectPath(-dw / 2, -dh / 2, dw, dh, c.transform.radius); ctx.clip(); }
+            try { ctx.drawImage(el, sx, sy, sw, sh, -dw / 2, -dh / 2, dw, dh); } catch (e) { }
+            if (c.color.vignette > 0) drawVignette(dw, dh, c.color.vignette);
+        }
+        function roundRectPath(x, y, w, h, r) { r = Math.min(r, w / 2, h / 2); ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
+        function drawVignette(w, h, intensity) {
+            const g = ctx.createRadialGradient(0, 0, Math.min(w, h) * 0.25, 0, 0, Math.max(w, h) * 0.62);
+            g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, `rgba(0,0,0,${intensity / 100 * 0.85})`);
+            ctx.save(); ctx.filter = 'none'; ctx.fillStyle = g; ctx.fillRect(-w / 2, -h / 2, w, h); ctx.restore();
+        }
+        function drawTextClip(c, relT) {
+            const t = c.text;
+            ctx.font = `700 ${t.size}px Arial, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            const a = animTransform(t.animIn, t.animOut, relT, c.dur);
+            ctx.scale(a.scale, a.scale); ctx.translate(a.x, a.y);
+            if (t.useShadow) { ctx.shadowColor = 'rgba(0,0,0,.6)'; ctx.shadowBlur = 10; ctx.shadowOffsetY = 4; }
+            ctx.fillStyle = t.color;
+            if (t.useStroke) { ctx.lineWidth = Math.max(1, t.size * 0.06); ctx.strokeStyle = t.stroke; ctx.strokeText(t.content, 0, 0); }
+            ctx.fillText(t.content, 0, 0);
+        }
+        function drawStickerClip(c) {
+            const s = c.sticker;
+            if (s.emoji) { ctx.font = `${(c.transform.scaleX || 1) * 120}px sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(s.emoji, 0, 0); }
+            else if (s.url && c.el) { ctx.drawImage(c.el, -80, -80, 160, 160); }
+        }
+        function animTransform(animIn, animOut, relT, dur) {
+            const win = 0.4; let scale = 1, x = 0, y = 0;
+            if (animIn && relT < win) { const t = easeFn('easeOut')(relT / win); if (animIn === 'pop') scale = lerp(0.3, 1, t); if (animIn === 'slide') x = lerp(-300, 0, t); }
+            if (animOut && (dur - relT) < win) { const t = easeFn('easeIn')(1 - (dur - relT) / win); if (animOut === 'pop') scale *= lerp(1, 0.3, t); if (animOut === 'slide') x += lerp(0, 300, t); }
+            return { scale, x, y };
+        }
+        function transitionFactor(c, relT, side) {
+            const tdef = side === 'in' ? c.transitionIn : c.transitionOut; if (!tdef) return 1;
+            const d = tdef.dur;
+            if (side === 'in') { if (relT >= d) return 1; return clamp(relT / d, 0, 1); }
+            const rel = c.dur - relT; if (rel >= d) return 1; return clamp(rel / d, 0, 1);
+        }
+
+        /* ---- per-clip screen effects (attached to media clip itself) ---- */
+        let grainCanvas = null;
+        function ensureGrain() { if (grainCanvas) return; grainCanvas = document.createElement('canvas'); grainCanvas.width = 128; grainCanvas.height = 128; const gctx = grainCanvas.getContext('2d'); const id = gctx.createImageData(128, 128); for (let i = 0; i < id.data.length; i += 4) { const v = Math.random() * 255; id.data[i] = id.data[i + 1] = id.data[i + 2] = v; id.data[i + 3] = 255; } gctx.putImageData(id, 0, 0); }
+        function applyClipEffects(entry, globalTime) {
+            const { clip: c } = entry; if (!c.effects || !c.effects.length) return;
+            const relT = globalTime - c.start;
+            c.effects.forEach(eff => {
+                const inten = (eff.intensity || 50) / 100;
+                switch (eff.type) {
+                    case 'glitch': if (Math.random() < 0.2 * inten) doGlitchSlice(inten); break;
+                    case 'shake': doScreenShake(inten); break;
+                    case 'blur': doScreenBlur(inten); break;
+                    case 'rgbsplit': doChromaSplit(inten); break;
+                    case 'noise': doNoiseOverlay(inten); break;
+                    case 'pixel': doPixelate(inten); break;
+                    case 'flash': if (Math.sin(relT * 8) > 0.7) doFlash(inten); break;
+                    case 'vhs': doNoiseOverlay(inten * 0.6); doChromaSplit(inten * 0.5); break;
+                }
+            });
+        }
+        let fxScratchCanvas = null, fxScratchCtx = null;
+        function getFxScratch(w, h) {
+            if (!fxScratchCanvas) { fxScratchCanvas = document.createElement('canvas'); fxScratchCtx = fxScratchCanvas.getContext('2d'); }
+            if (fxScratchCanvas.width !== w || fxScratchCanvas.height !== h) { fxScratchCanvas.width = w; fxScratchCanvas.height = h; }
+            return fxScratchCanvas;
+        }
+        function doScreenShake(inten) { try { const w = stage.width, h = stage.height; const snap = getFxScratch(w, h); fxScratchCtx.clearRect(0, 0, w, h); fxScratchCtx.drawImage(stage, 0, 0); const dx = (Math.random() - 0.5) * 24 * inten, dy = (Math.random() - 0.5) * 24 * inten; ctx.save(); ctx.filter = 'none'; ctx.clearRect(0, 0, w, h); ctx.fillStyle = state.bgColor; ctx.fillRect(0, 0, w, h); ctx.drawImage(snap, dx, dy); ctx.restore(); } catch (e) { } }
+        function doScreenBlur(inten) { try { const w = stage.width, h = stage.height; const snap = getFxScratch(w, h); fxScratchCtx.clearRect(0, 0, w, h); fxScratchCtx.drawImage(stage, 0, 0); ctx.save(); ctx.filter = `blur(${(inten * 10).toFixed(1)}px)`; ctx.clearRect(0, 0, w, h); ctx.drawImage(snap, 0, 0); ctx.restore(); } catch (e) { } }
+        function doGlitchSlice(inten) { const w = stage.width, h = stage.height; const sliceH = 6 + Math.random() * 26; const y = Math.random() * (h - sliceH); const dx = (Math.random() - 0.5) * 36 * inten; try { const id = ctx.getImageData(0, y, w, sliceH); ctx.putImageData(id, dx, y); } catch (e) { } }
+        function doChromaSplit(inten) { const w = stage.width, h = stage.height; ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = 0.5; try { const snap = ctx.getImageData(0, 0, w, h); ctx.putImageData(snap, 2 * inten, 0); } catch (e) { } ctx.restore(); }
+        function doNoiseOverlay(inten) { ensureGrain(); ctx.save(); ctx.filter = 'none'; ctx.globalAlpha = 0.16 * inten; ctx.globalCompositeOperation = 'overlay'; ctx.drawImage(grainCanvas, 0, 0, stage.width, stage.height); ctx.restore(); }
+        let fxPixelCanvas = null, fxPixelCtx = null;
+        function doPixelate(inten) { const w = stage.width, h = stage.height; const f = Math.max(2, Math.round(1 + inten * 26)); const sw = Math.max(1, Math.round(w / f)), sh = Math.max(1, Math.round(h / f)); try { if (!fxPixelCanvas) { fxPixelCanvas = document.createElement('canvas'); fxPixelCtx = fxPixelCanvas.getContext('2d'); } if (fxPixelCanvas.width !== sw || fxPixelCanvas.height !== sh) { fxPixelCanvas.width = sw; fxPixelCanvas.height = sh; } fxPixelCtx.clearRect(0, 0, sw, sh); fxPixelCtx.drawImage(stage, 0, 0, sw, sh); ctx.save(); ctx.imageSmoothingEnabled = false; ctx.drawImage(fxPixelCanvas, 0, 0, sw, sh, 0, 0, w, h); ctx.restore(); } catch (e) { } }
+        function doFlash(inten) { ctx.save(); ctx.filter = 'none'; ctx.globalAlpha = 0.5 * inten; ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, stage.width, stage.height); ctx.restore(); }
+
+        function renderFrame(time) {
+            ctx.clearRect(0, 0, stage.width, stage.height); ctx.filter = 'none'; ctx.globalAlpha = 1;
+            const allActive = activeClipsAt(time);
+            const mediaEntries = allActive.filter(e => e.track.type === 'media').sort((a, b) => a.clip.start - b.clip.start);
+            const topMedia = mediaEntries[mediaEntries.length - 1];
+            let bgDrawn = false;
+            if (topMedia && state.bgMode === 'blur') {
+                const fit = fitContainSize(topMedia.clip);
+                // рисуем размытую подложку, только если контент НЕ заполняет весь кадр целиком
+                // (иначе блюр всё равно был бы не виден, не тратим на него ресурсы)
+                if (fit && (fit.dw < state.canvasW - 2 || fit.dh < state.canvasH - 2)) {
+                    bgDrawn = drawCoverBlurBackground(topMedia.clip);
+                }
+            }
+            if (!bgDrawn) { ctx.filter = 'none'; ctx.fillStyle = state.bgColor; ctx.fillRect(0, 0, stage.width, stage.height); }
+            const order = { media: 1, overlay: 4, audio: 0 };
+            const visEntries = allActive.filter(e => e.track.type !== 'audio' ? (e.track.type === 'media' ? true : e.clip.kind !== '') : false);
+            allActive.forEach(entry => {
+                try {
+                    if (entry.track.type === 'audio') { ensureMediaPlayback(entry.clip, time, state.playing, entry.track); return; }
+                    if (entry.clip.kind === 'video') ensureMediaPlayback(entry.clip, time, state.playing, entry.track);
+                    drawClip(entry, time);
+                    if (entry.track.type === 'media') applyClipEffects(entry, time);
+                } catch (err) { /* fail-safe: skip broken clip */ }
+            });
+            // ВАЖНО: после разрезания клипа (✂️) оба куска используют ОДИН И ТОТ ЖЕ <video>/<audio>
+            // элемент (c.el). Раньше код проверял "активность" по каждому КЛИПУ отдельно и мог
+            // поставить элемент на паузу, даже если в этот же момент он нужен соседнему клипу,
+            // который как раз играет тот же файл — получалось, что время на таймлайне идёт,
+            // а видео замирает (play() и pause() дёргались каждый кадр). Теперь пауза ставится
+            // только если ни один активный сейчас клип не использует этот элемент.
+            const activeEls = new Set(allActive.map(en => en.clip.el).filter(Boolean));
+            state.tracks.forEach(tr => tr.clips.forEach(c => {
+                if (c.el && !activeEls.has(c.el) && !c.el.paused) { try { c.el.pause(); } catch (e) { } }
+            }));
+        }
+        function tick(ts) {
+            try {
+                if (lastFrameTs == null) lastFrameTs = ts;
+                const dt = (ts - lastFrameTs) / 1000; lastFrameTs = ts;
+                if (state.playing) { state.currentTime += dt; if (state.currentTime >= state.duration) { state.currentTime = state.duration; stopPlayback(); } }
+                renderFrame(state.currentTime);
+                updatePlayheadPos(); updateXformOverlay();
+                $('#tcode').textContent = `${fmtTime(state.currentTime)} / ${fmtTime(state.duration)}`;
+            } catch (err) { }
+            requestAnimationFrame(tick);
+        }
+        requestAnimationFrame(tick);
+
+        function seekTo(t) { state.currentTime = clamp(t, 0, state.duration); renderFrame(state.currentTime); updatePlayheadPos(); updateXformOverlay(); $('#tcode').textContent = `${fmtTime(state.currentTime)} / ${fmtTime(state.duration)}`; }
+        function togglePlay() { state.playing ? stopPlayback() : startPlayback(); }
+        function startPlayback() { state.playing = true; lastFrameTs = null; $('#btnPlay').textContent = '⏸'; audioCtxMain.resume().catch(() => { }); activeClipsAt(state.currentTime).forEach(({ clip: c }) => { if (c.el && c.kind === 'video') c.el.play().catch(() => { }); }); }
+        function stopPlayback() { state.playing = false; $('#btnPlay').textContent = '▶'; pauseAllMedia(); }
+        $('#btnPlay').onclick = togglePlay;
+        $('#btnToStart').onclick = () => seekTo(0);
+
+        /* =================== XFORM OVERLAY =================== */
+        const xformBox = $('#xformBox');
+        function getClipBaseSize(c) {
+            if (c.kind === 'video' || c.kind === 'photo') {
+                const nat = getNativeSize(c); const crop = c.crop || { l: 0, t: 0, r: 0, b: 0 };
+                const sw = Math.max(1, nat.w * (1 - crop.l - crop.r)), sh = Math.max(1, nat.h * (1 - crop.t - crop.b));
+                const scale = Math.min(state.canvasW / sw, state.canvasH / sh);
+                return { w: sw * scale, h: sh * scale };
+            }
+            if (c.kind === 'text') { try { ctx.save(); ctx.font = `700 ${c.text.size}px Arial`; const w = Math.max(20, ctx.measureText(c.text.content || ' ').width); ctx.restore(); return { w: w + 24, h: c.text.size * 1.4 }; } catch (e) { return { w: 200, h: 60 }; } }
+            return { w: 160, h: 160 };
+        }
+        function getClipScreenBox(c) {
+            const base = getClipBaseSize(c);
+            const w = base.w * (c.transform.scaleX || 1), h = base.h * (c.transform.scaleY || 1);
+            const cx = state.canvasW / 2 + (c.transform.x || 0), cy = state.canvasH / 2 + (c.transform.y || 0);
+            return { cx, cy, w, h, rot: c.transform.rotation || 0 };
+        }
+        function currentXformClip() {
+            const f = findClip(state.selectedClipId); if (!f) return null;
+            if (!['video', 'photo', 'text', 'sticker'].includes(f.clip.kind)) return null;
+            const active = activeClipsAt(state.currentTime).some(en => en.clip.id === f.clip.id);
+            if (!active) return null;
+            return f.clip;
+        }
+        function updateXformOverlay() {
+            const c = currentXformClip(); if (!c) { xformBox.classList.add('hidden'); return; }
+            const stageRect = stage.getBoundingClientRect(); const wrapRect = $('#previewWrap').getBoundingClientRect();
+            if (!stageRect.width || !stageRect.height) { xformBox.classList.add('hidden'); return; }
+            const sx = stageRect.width / state.canvasW, sy = stageRect.height / state.canvasH;
+            const box = getClipScreenBox(c);
+            xformBox.style.left = ((stageRect.left - wrapRect.left) + (box.cx - box.w / 2) * sx) + 'px';
+            xformBox.style.top = ((stageRect.top - wrapRect.top) + (box.cy - box.h / 2) * sy) + 'px';
+            xformBox.style.width = Math.max(10, box.w * sx) + 'px'; xformBox.style.height = Math.max(10, box.h * sy) + 'px';
+            xformBox.style.transform = `rotate(${box.rot}deg)`;
+            xformBox.classList.remove('hidden');
+        }
+        function clientToCanvas(clientX, clientY) { const rect = stage.getBoundingClientRect(); return { x: (clientX - rect.left) * (stage.width / rect.width), y: (clientY - rect.top) * (stage.height / rect.height) }; }
+        (function enableXform() {
+            xformBox.addEventListener('pointerdown', e => {
+                if (e.target.closest('.xform-handle') || e.target.closest('.xform-rotate') || e.target.closest('.xform-gear')) return;
+                const c = currentXformClip(); if (!c) return;
+                e.preventDefault(); e.stopPropagation();
+                try { xformBox.setPointerCapture(e.pointerId); } catch (err) { }
+                const start = clientToCanvas(e.clientX, e.clientY); const sX = c.transform.x, sY = c.transform.y;
+                const onMove = ev => { ev.preventDefault(); const cur = clientToCanvas(ev.clientX, ev.clientY); c.transform.x = sX + (cur.x - start.x); c.transform.y = sY + (cur.y - start.y); renderFrame(state.currentTime); updateXformOverlay(); };
+                const onUp = () => { window.removeEventListener('pointermove', onMove); window.removeEventListener('pointerup', onUp); window.removeEventListener('pointercancel', onUp); pushHistory(); };
+                window.addEventListener('pointermove', onMove, { passive: false }); window.addEventListener('pointerup', onUp); window.addEventListener('pointercancel', onUp);
+            });
+            $all('.xform-handle').forEach(h => {
+                h.addEventListener('pointerdown', e => {
+                    const c = currentXformClip(); if (!c) return;
+                    e.preventDefault(); e.stopPropagation(); try { h.setPointerCapture(e.pointerId); } catch (err) { }
+                    const box = getClipScreenBox(c); const start = clientToCanvas(e.clientX, e.clientY);
+                    const startDist = Math.max(1, Math.hypot(start.x - box.cx, start.y - box.cy));
+                    const sX = c.transform.scaleX || 1, sY = c.transform.scaleY || 1;
+                    const onMove = ev => { ev.preventDefault(); const cur = clientToCanvas(ev.clientX, ev.clientY); const dist = Math.max(1, Math.hypot(cur.x - box.cx, cur.y - box.cy)); const ratio = dist / startDist; c.transform.scaleX = clamp(sX * ratio, 0.05, 8); c.transform.scaleY = clamp(sY * ratio, 0.05, 8); renderFrame(state.currentTime); updateXformOverlay(); };
+                    const onUp = () => { window.removeEventListener('pointermove', onMove); window.removeEventListener('pointerup', onUp); window.removeEventListener('pointercancel', onUp); pushHistory(); };
+                    window.addEventListener('pointermove', onMove, { passive: false }); window.addEventListener('pointerup', onUp); window.addEventListener('pointercancel', onUp);
+                });
+            });
+            const rotH = $('.xform-rotate');
+            rotH.addEventListener('pointerdown', e => {
+                const c = currentXformClip(); if (!c) return;
+                e.preventDefault(); e.stopPropagation(); try { rotH.setPointerCapture(e.pointerId); } catch (err) { }
+                const box = getClipScreenBox(c); const start = clientToCanvas(e.clientX, e.clientY);
+                const startAngle = Math.atan2(start.y - box.cy, start.x - box.cx) * 180 / Math.PI; const startRot = c.transform.rotation || 0;
+                const onMove = ev => { ev.preventDefault(); const cur = clientToCanvas(ev.clientX, ev.clientY); const angle = Math.atan2(cur.y - box.cy, cur.x - box.cx) * 180 / Math.PI; c.transform.rotation = Math.round(startRot + (angle - startAngle)); renderFrame(state.currentTime); updateXformOverlay(); };
+                const onUp = () => { window.removeEventListener('pointermove', onMove); window.removeEventListener('pointerup', onUp); window.removeEventListener('pointercancel', onUp); pushHistory(); };
+                window.addEventListener('pointermove', onMove, { passive: false }); window.addEventListener('pointerup', onUp); window.addEventListener('pointercancel', onUp);
+            });
+            window.addEventListener('resize', updateXformOverlay);
+            $('#xformGear').onclick = e => { e.stopPropagation(); if (state.selectedClipId) openClipProps(state.selectedClipId); };
+        })();
+
+        /* =================== BOTTOM SHEET SYSTEM =================== */
+        let currentSheetBg = null;
+        function openSheet(title, bodyBuilder) {
+            closeSheet();
+            const bg = document.createElement('div'); bg.className = 'sheet-bg';
+            bg.innerHTML = `<div class="sheet"><div class="sheet-handle"></div><div class="sheet-head">${title}<button class="sheet-close">✕</button></div><div class="sheet-tabs hidden" id="sheetTabs"></div><div class="sheet-body" id="sheetBody"></div></div>`;
+            document.body.appendChild(bg);
+            currentSheetBg = bg;
+            // Защита от "клика-призрака": когда лист открывается по pointerdown на клипе,
+            // тот же тач/клик может затем долететь до фона sheet-bg и мгновенно его закрыть.
+            // Поэтому игнорируем клики по фону в первые 300мс после открытия.
+            const openedAt = Date.now();
+            bg.onclick = e => { if (e.target === bg && Date.now() - openedAt > 300) closeSheet(); };
+            bg.querySelector('.sheet-close').onclick = closeSheet;
+            // swipe down to close
+            const handle = bg.querySelector('.sheet-handle'); const sheetEl = bg.querySelector('.sheet');
+            let startY = 0, curY = 0, dragging = false;
+            handle.onpointerdown = e => { dragging = true; startY = e.clientY; try { handle.setPointerCapture(e.pointerId); } catch (err) { } };
+            handle.onpointermove = e => { if (!dragging) return; curY = Math.max(0, e.clientY - startY); sheetEl.style.transform = `translateY(${curY}px)`; };
+            handle.onpointerup = () => { dragging = false; if (curY > 80) closeSheet(); else sheetEl.style.transform = ''; };
+            requestAnimationFrame(() => bg.classList.add('show'));
+            bodyBuilder(bg.querySelector('#sheetBody'), bg.querySelector('#sheetTabs'));
+        }
+        function closeSheet() {
+            if (!currentSheetBg) return;
+            const bg = currentSheetBg; currentSheetBg = null;
+            bg.classList.remove('show');
+            setTimeout(() => bg.remove(), 200);
+        }
+
+        /* ---------- "+ Добавить" sheet ---------- */
+        $('#btnAddSheet').onclick = () => openSheet('Добавить', (body) => {
+            body.innerHTML = `<div class="grid3" id="addGrid"></div><div id="addLibrary"></div>`;
+            const grid = body.querySelector('#addGrid');
+            const items = [
+                ['🎬', 'Видео/Фото', () => openMediaSheet()],
+                ['🔤', 'Текст', () => openAddText()],
+                ['😀', 'Стикер', () => openStickerSheet()],
+                ['🎵', 'Музыка', () => openAudioSheet()],
+                ['✨', 'Эффект', () => { if (!state.selectedClipId) { toast('Сначала выберите клип видео/фото', true); return; } const f = findClip(state.selectedClipId); if (!f || f.track.type !== 'media') { toast('Эффекты только для видео/фото', true); return; } openClipProps(state.selectedClipId, 'fx'); }],
+            ];
+            items.forEach(([ic, label, fn]) => {
+                const b = document.createElement('button'); b.className = 'opt-btn'; b.innerHTML = `<span class="ic">${ic}</span>${label}`; b.onclick = fn; grid.appendChild(b);
+            });
+        });
+
+        function openMediaSheet() {
+            openSheet('Видео / Фото', (body) => {
+                body.innerHTML = `<div class="drop-zone" id="mImport">📁 Выбрать файл с телефона</div><div class="panel-title">Медиатека</div><div class="media-grid grid3" id="mLib"></div>`;
+                body.querySelector('#mImport').onclick = () => $('#fileInputMain').click();
+                const libGrid = body.querySelector('#mLib');
+                state.mediaLibrary.filter(m => m.kind === 'video' || m.kind === 'image').forEach(lib => {
+                    const div = document.createElement('div'); div.className = 'media-item';
+                    div.innerHTML = lib.thumb ? `<img src="${lib.thumb}">` : `<div style="font-size:24px">${lib.kind === 'video' ? '🎬' : '🖼️'}</div>`;
+                    div.innerHTML += `<div class="mi-label">${lib.name}</div>`;
+                    div.onclick = () => quickAdd(lib);
+                    libGrid.appendChild(div);
+                });
+            });
+        }
+        function openStickerSheet() {
+            openSheet('Стикеры', (body) => {
+                body.innerHTML = `<div class="panel-title">Emoji</div><div class="grid4" id="emojiGrid" style="font-size:24px"></div><div class="panel-title">Свои PNG</div><div class="drop-zone" id="stImport">🖼 Загрузить PNG</div><div class="grid3" id="stLib"></div>`;
+                const EMOJI = ['😀', '😂', '🥳', '😍', '🔥', '💯', '✨', '🎉', '👍', '❤️', '😎', '🤯', '🙌', '😱', '👀', '💪', '🚀', '⭐', '🌈', '🏆'];
+                const eg = body.querySelector('#emojiGrid');
+                EMOJI.forEach(em => { const b = document.createElement('button'); b.className = 'opt-btn'; b.style.minHeight = '56px'; b.textContent = em; b.onclick = () => { const clip = makeClip('sticker', { dur: 3, name: em, emoji: em }); addClipToTrack(clip, state.currentTime); }; eg.appendChild(b); });
+                body.querySelector('#stImport').onclick = () => $('#fileInputSticker').click();
+                const stLib = body.querySelector('#stLib');
+                state.mediaLibrary.filter(m => m.kind === 'sticker').forEach(lib => {
+                    const div = document.createElement('div'); div.className = 'media-item'; div.innerHTML = `<img src="${lib.url}">`;
+                    div.onclick = () => { const clip = makeClip('sticker', { dur: 3, name: lib.name, url: lib.url, el: lib.el }); addClipToTrack(clip, state.currentTime); };
+                    stLib.appendChild(div);
+                });
+            });
+        }
+        function openAddText() {
+            openSheet('Текст', (body) => {
+                body.innerHTML = `<textarea id="newTextInput" placeholder="Введите текст…">Ваш текст</textarea><button class="tb-btn primary" style="width:100%;margin-top:10px;justify-content:center;height:46px" id="btnDoAddText">＋ Добавить на дорожку</button>`;
+                body.querySelector('#btnDoAddText').onclick = () => {
+                    const clip = makeClip('text', { dur: 3, text: body.querySelector('#newTextInput').value || 'Текст' });
+                    addClipToTrack(clip, state.currentTime);
+                };
+            });
+        }
+        function openAudioSheet() {
+            openSheet('Музыка / Голос', (body) => {
+                body.innerHTML = `<div class="drop-zone" id="aImport">🎵 Выбрать аудиофайл</div>
+      <div class="panel-title">Готовые тона</div>
+      <div class="btn-row"><button class="chip" data-tone="lofi">Lo-fi</button><button class="chip" data-tone="ambient">Ambient</button><button class="chip" data-tone="beat">Бит</button></div>
+      <div class="panel-title">Голос</div>
+      <button class="tb-btn" id="btnRecVoice" style="width:100%;justify-content:center;height:46px">🎤 Записать голос</button>
+      <div class="panel-title">Медиатека</div><div class="media-grid grid3" id="aLib"></div>`;
+                body.querySelector('#aImport').onclick = () => $('#fileInputAudio').click();
+                body.querySelectorAll('[data-tone]').forEach(b => b.onclick = async () => {
+                    toast('Генерация…');
+                    const buf = genTone(b.dataset.tone);
+                    const { el, blob } = await bufferToClipEl(buf);
+                    const id = uid(); idbSaveMediaBlob(id, 'Тон: ' + b.dataset.tone, 'audio', blob);
+                    const lib = { id, name: 'Тон: ' + b.dataset.tone, kind: 'audio', url: el.src, el, duration: el.duration };
+                    state.mediaLibrary.push(lib); quickAdd(lib);
+                });
+                body.querySelector('#btnRecVoice').onclick = () => toggleVoiceRecord(body.querySelector('#btnRecVoice'));
+                const aLib = body.querySelector('#aLib');
+                state.mediaLibrary.filter(m => m.kind === 'audio').forEach(lib => {
+                    const div = document.createElement('div'); div.className = 'media-item'; div.innerHTML = `<div style="font-size:24px">🎵</div><div class="mi-label">${lib.name}</div>`;
+                    div.onclick = () => quickAdd(lib); aLib.appendChild(div);
+                });
+            });
+        }
+        let mediaRecorderVoice = null, voiceChunks = [];
+        async function toggleVoiceRecord(btn) {
+            if (mediaRecorderVoice && mediaRecorderVoice.state === 'recording') { mediaRecorderVoice.stop(); btn.textContent = '🎤 Записать голос'; return; }
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: { noiseSuppression: true, echoCancellation: true } });
+                voiceChunks = []; mediaRecorderVoice = new MediaRecorder(stream);
+                mediaRecorderVoice.ondataavailable = e => voiceChunks.push(e.data);
+                mediaRecorderVoice.onstop = () => {
+                    const blob = new Blob(voiceChunks, { type: 'audio/webm' }); const url = URL.createObjectURL(blob); const id = uid();
+                    idbSaveMediaBlob(id, 'Запись голоса', 'audio', blob);
+                    const a = document.createElement('audio'); a.src = url; $('#mediaPool').appendChild(a);
+                    a.onloadedmetadata = () => { const lib = { id, name: 'Запись голоса', kind: 'audio', url, el: a, duration: a.duration }; state.mediaLibrary.push(lib); quickAdd(lib); };
+                    stream.getTracks().forEach(t => t.stop());
+                };
+                mediaRecorderVoice.start(); btn.textContent = '⏹ Остановить'; toast('Идёт запись…');
+            } catch (e) { toast('Нет доступа к микрофону', true); }
+        }
+        function genTone(kind) {
+            const dur = kind === 'beat' ? 8 : 14; const sr = 44100, len = sr * dur;
+            const buf = audioCtxMain.createBuffer(2, len, sr);
+            for (let ch = 0; ch < 2; ch++) {
+                const data = buf.getChannelData(ch);
+                for (let i = 0; i < len; i++) {
+                    const t = i / sr; let v = 0;
+                    if (kind === 'lofi') v = 0.18 * Math.sin(2 * Math.PI * 110 * t) * (0.6 + 0.4 * Math.sin(2 * Math.PI * 0.5 * t));
+                    else if (kind === 'ambient') v = 0.15 * Math.sin(2 * Math.PI * 220 * t + Math.sin(t * 0.3));
+                    else if (kind === 'beat') v = (i % Math.floor(sr * 0.5) < 800) ? 0.4 * Math.exp(-(i % Math.floor(sr * 0.5)) / 300) : 0;
+                    data[i] = v;
+                }
+            }
+            return buf;
+        }
+        function bufferToClipEl(buf) {
+            return audioBufferToWavURL(buf).then(({ url, blob }) => { const a = document.createElement('audio'); a.src = url; a.preload = 'auto'; $('#mediaPool').appendChild(a); return new Promise(res => { a.onloadedmetadata = () => res({ el: a, blob }); }); });
+        }
+        function audioBufferToWavURL(buf) {
+            return new Promise(resolve => {
+                const numCh = buf.numberOfChannels, len = buf.length * numCh * 2 + 44, out = new ArrayBuffer(len), view = new DataView(out);
+                let pos = 0; const wStr = s => { for (let i = 0; i < s.length; i++) view.setUint8(pos++, s.charCodeAt(i)); }; const w32 = v => { view.setUint32(pos, v, true); pos += 4; }; const w16 = v => { view.setUint16(pos, v, true); pos += 2; };
+                wStr('RIFF'); w32(len - 8); wStr('WAVE'); wStr('fmt '); w32(16); w16(1); w16(numCh); w32(buf.sampleRate); w32(buf.sampleRate * numCh * 2); w16(numCh * 2); w16(16); wStr('data'); w32(len - pos - 4);
+                const chans = []; for (let i = 0; i < numCh; i++) chans.push(buf.getChannelData(i));
+                let offset = 0;
+                while (pos < len) { for (let i = 0; i < numCh; i++) { let s = Math.max(-1, Math.min(1, chans[i][offset])); view.setInt16(pos, s < 0 ? s * 32768 : s * 32767, true); pos += 2; } offset++; }
+                const blob = new Blob([out], { type: 'audio/wav' }); resolve({ url: URL.createObjectURL(blob), blob });
+            });
+        }
+
+        /* =================== CLIP PROPERTIES SHEET =================== */
+        function openClipProps(id, focusTab) {
+            const f = findClip(id); if (!f) return;
+            const c = f.clip;
+            const tabsFor = c.kind === 'video' ? ['Свойства', 'Цвет', 'Эффект', 'Переход']
+                : c.kind === 'photo' ? ['Свойства', 'Цвет', 'Анимация', 'Переход']
+                    : c.kind === 'text' ? ['Текст', 'Анимация']
+                        : c.kind === 'sticker' ? ['Свойства']
+                            : ['Звук'];
+            let activeTab = focusTab === 'fx' ? (tabsFor.includes('Эффект') ? 'Эффект' : tabsFor[0]) : tabsFor[0];
+            openSheet(c.kind === 'text' ? (c.text.content.slice(0, 18) || 'Текст') : c.name, (body, tabsEl) => {
+                if (tabsFor.length > 1) {
+                    tabsEl.classList.remove('hidden');
+                    tabsFor.forEach(t => { const b = document.createElement('button'); b.className = 'sheet-tab' + (t === activeTab ? ' active' : ''); b.textContent = t; b.onclick = () => { activeTab = t; renderTab(); $all('.sheet-tab', tabsEl).forEach(x => x.classList.remove('active')); b.classList.add('active'); }; tabsEl.appendChild(b); });
+                }
+                function renderTab() {
+                    body.innerHTML = '';
+                    if (activeTab === 'Свойства') renderPropsTab(body, c);
+                    else if (activeTab === 'Цвет') renderColorTab(body, c);
+                    else if (activeTab === 'Эффект') renderFxTab(body, c);
+                    else if (activeTab === 'Переход') renderTransTab(body, c);
+                    else if (activeTab === 'Анимация') renderAnimTab(body, c);
+                    else if (activeTab === 'Текст') renderTextTab(body, c);
+                    else if (activeTab === 'Звук') renderAudioTab(body, c);
+                }
+                renderTab();
+            });
+        }
+        function sliderField(label, value, min, max, step, onChange, onCommit) {
+            const wrap = document.createElement('div'); wrap.className = 'field';
+            const dispVal = step < 1 ? value.toFixed(2) : Math.round(value);
+            wrap.innerHTML = `<label>${label} <span>${dispVal}</span></label>`;
+            const input = document.createElement('input'); input.type = 'range'; input.min = min; input.max = max; input.step = step; input.value = value;
+            input.oninput = () => { const v = Number(input.value); wrap.querySelector('span').textContent = step < 1 ? v.toFixed(2) : v; onChange(v); renderFrame(state.currentTime); };
+            input.onchange = () => { if (onCommit) onCommit(); pushHistory(); };
+            wrap.appendChild(input); return wrap;
+        }
+        function mkChip(label, active, onClick) { const b = document.createElement('button'); b.className = 'chip' + (active ? ' active' : ''); b.textContent = label; b.onclick = onClick; return b; }
+
+        function renderPropsTab(body, c) {
+            if (c.kind === 'video') {
+                const pt = document.createElement('div'); pt.className = 'panel-title'; pt.textContent = 'Скорость'; body.appendChild(pt);
+                const row = document.createElement('div'); row.className = 'btn-row'; row.style.marginBottom = '14px';
+                [['0.5x', 0.5], ['1x', 1], ['1.5x', 1.5], ['2x', 2]].forEach(([lbl, spd]) => { row.appendChild(mkChip(lbl, Math.abs(c.speed - spd) < 0.01, () => { c.speed = spd; pushHistory(); openClipProps(c.id); })); });
+                body.appendChild(row);
+                const revBtn = document.createElement('button'); revBtn.className = 'chip' + (c.reverse ? ' active' : ''); revBtn.style.cssText = 'width:100%;justify-content:center;margin-bottom:14px;height:44px';
+                revBtn.textContent = c.reverse ? '⏪ Реверс: включен' : '⏪ Реверс: выключен';
+                revBtn.onclick = () => { c.reverse = !c.reverse; pushHistory(); openClipProps(c.id); };
+                body.appendChild(revBtn);
+                const muteBtn = document.createElement('button'); muteBtn.className = 'chip' + (c.volume === 0 ? ' active' : ''); muteBtn.style.cssText = 'width:100%;justify-content:center;margin-bottom:10px;height:44px';
+                muteBtn.textContent = c.volume === 0 ? '🔇 Звук выключен' : '🔊 Звук включен';
+                muteBtn.onclick = () => { c.volume = c.volume === 0 ? 100 : 0; pushHistory(); openClipProps(c.id); };
+                body.appendChild(muteBtn);
+                body.appendChild(sliderField('Громкость', c.volume, 0, 200, 1, v => c.volume = v));
+            }
+            body.appendChild(sliderField('Масштаб %', c.transform.scaleX * 100, 10, 400, 1, v => { c.transform.scaleX = v / 100; c.transform.scaleY = v / 100; }));
+            body.appendChild(sliderField('Поворот °', c.transform.rotation, -180, 180, 1, v => c.transform.rotation = v));
+            body.appendChild(sliderField('Прозрачность', c.transform.opacity, 0, 100, 1, v => c.transform.opacity = v));
+            if (c.kind === 'video' || c.kind === 'photo') {
+                const ct = document.createElement('div'); ct.className = 'panel-title'; ct.textContent = 'Кадрирование'; body.appendChild(ct);
+                ['l', 't', 'r', 'b'].forEach(k => { const lbl = { l: 'Слева', t: 'Сверху', r: 'Справа', b: 'Снизу' }[k]; body.appendChild(sliderField(lbl, c.crop[k] * 100, 0, 45, 1, v => c.crop[k] = v / 100)); });
+            }
+            const hint = document.createElement('div'); hint.className = 'note'; hint.textContent = 'Совет: чтобы подвинуть, увеличить или повернуть клип — используйте рамку прямо на экране предпросмотра.';
+            body.appendChild(hint);
+        }
+        const COLOR_PARAMS = [['brightness', 'Яркость', -100, 100], ['contrast', 'Контраст', -100, 100], ['saturation', 'Насыщенность', -100, 100], ['warmth', 'Теплота', -60, 60], ['vignette', 'Виньетка', 0, 100]];
+        const FILTER_PRESETS = [['', 'Нет'], ['vintage', 'Vintage'], ['cinema', 'Cinema'], ['warm', 'Warm'], ['cool', 'Cool'], ['bw', 'Ч/Б'], ['hdr', 'HDR'], ['neon', 'Neon']];
+        function renderColorTab(body, c) {
+            const ft = document.createElement('div'); ft.className = 'panel-title'; ft.textContent = 'Фильтр'; body.appendChild(ft);
+            const grid = document.createElement('div'); grid.className = 'btn-row';
+            FILTER_PRESETS.forEach(([key, label]) => { grid.appendChild(mkChip(label, c.color.filter === key, () => { c.color.filter = key; pushHistory(); openClipProps(c.id); })); });
+            body.appendChild(grid);
+            const ct = document.createElement('div'); ct.className = 'panel-title'; ct.textContent = 'Коррекция'; body.appendChild(ct);
+            COLOR_PARAMS.forEach(([key, label, min, max]) => { body.appendChild(sliderField(label, c.color[key], min, max, 1, v => c.color[key] = v)); });
+            const ai = document.createElement('button'); ai.className = 'tb-btn'; ai.style.cssText = 'width:100%;justify-content:center;height:44px'; ai.textContent = '🤖 Авто-цвет';
+            ai.onclick = () => aiAutoColorCorrect(c);
+            body.appendChild(ai);
+        }
+        const FX_LIST = [['glitch', 'Glitch', '🌀'], ['blur', 'Blur', '💧'], ['rgbsplit', 'RGB', '🌈'], ['vhs', 'VHS', '📼'], ['shake', 'Shake', '📳'], ['flash', 'Flash', '⚡'], ['noise', 'Noise', '📺'], ['pixel', 'Pixel', '🔲']];
+        function renderFxTab(body, c) {
+            const note = document.createElement('div'); note.className = 'note'; note.textContent = 'Эффект применится на всё время этого клипа на экране.';
+            body.appendChild(note);
+            const grid = document.createElement('div'); grid.className = 'grid4'; grid.style.marginTop = '10px';
+            FX_LIST.forEach(([key, label, ic]) => {
+                const active = c.effects.some(e => e.type === key);
+                const b = document.createElement('button'); b.className = 'opt-btn' + (active ? ' active' : ''); b.innerHTML = `<span class="ic">${ic}</span>${label}`;
+                b.onclick = () => { const idx = c.effects.findIndex(e => e.type === key); if (idx >= 0) c.effects.splice(idx, 1); else c.effects.push({ type: key, intensity: 50 }); pushHistory(); openClipProps(c.id, 'fx'); };
+                grid.appendChild(b);
+            });
+            body.appendChild(grid);
+            if (c.effects.length) {
+                const pt = document.createElement('div'); pt.className = 'panel-title'; pt.textContent = 'Сила эффекта'; body.appendChild(pt);
+                c.effects.forEach(eff => { body.appendChild(sliderField(FX_LIST.find(f => f[0] === eff.type)[1], eff.intensity, 0, 100, 1, v => eff.intensity = v)); });
+            }
+        }
+        const TRANS_LIST = [['fade', 'Fade'], ['slide', 'Slide'], ['zoom', 'Zoom'], ['push', 'Push'], ['flash', 'Flash']];
+        function renderTransTab(body, c) {
+            const pt1 = document.createElement('div'); pt1.className = 'panel-title'; pt1.textContent = 'Переход в начале'; body.appendChild(pt1);
+            const g1 = document.createElement('div'); g1.className = 'btn-row';
+            g1.appendChild(mkChip('Нет', !c.transitionIn, () => { c.transitionIn = null; pushHistory(); openClipProps(c.id, 'fx'); }));
+            TRANS_LIST.forEach(([key, label]) => { g1.appendChild(mkChip(label, c.transitionIn && c.transitionIn.type === key, () => { c.transitionIn = { type: key, dur: 0.5 }; pushHistory(); openClipProps(c.id, 'fx'); })); });
+            body.appendChild(g1);
+            const pt2 = document.createElement('div'); pt2.className = 'panel-title'; pt2.textContent = 'Переход в конце'; body.appendChild(pt2);
+            const g2 = document.createElement('div'); g2.className = 'btn-row';
+            g2.appendChild(mkChip('Нет', !c.transitionOut, () => { c.transitionOut = null; pushHistory(); openClipProps(c.id, 'fx'); }));
+            TRANS_LIST.forEach(([key, label]) => { g2.appendChild(mkChip(label, c.transitionOut && c.transitionOut.type === key, () => { c.transitionOut = { type: key, dur: 0.5 }; pushHistory(); openClipProps(c.id, 'fx'); })); });
+            body.appendChild(g2);
+            if (c.transitionIn || c.transitionOut) {
+                const dur = (c.transitionIn || c.transitionOut).dur;
+                body.appendChild(sliderField('Длительность, сек', dur, 0.1, 2, 0.1, v => { if (c.transitionIn) c.transitionIn.dur = v; if (c.transitionOut) c.transitionOut.dur = v; }));
+            }
+        }
+        function renderAnimTab(body, c) {
+            if (c.kind === 'photo') {
+                const kb = document.createElement('button'); kb.className = 'chip' + (c.kenBurns ? ' active' : ''); kb.style.cssText = 'width:100%;justify-content:center;height:46px;margin-bottom:10px';
+                kb.textContent = c.kenBurns ? '🎥 Ken Burns: включен' : '🎥 Ken Burns: выключен';
+                kb.onclick = () => { c.kenBurns = !c.kenBurns; if (c.kenBurns) c._kbDX = (Math.random() > 0.5 ? 1 : -1) * (20 + Math.random() * 30); pushHistory(); openClipProps(c.id); };
+                body.appendChild(kb);
+                const note = document.createElement('div'); note.className = 'note'; note.textContent = 'Плавное масштабирование и панорама — хорошо смотрится на фото.';
+                body.appendChild(note);
+            }
+        }
+        function renderTextTab(body, c) {
+            body.innerHTML = `<textarea id="txtContent">${c.text.content}</textarea>`;
+            body.querySelector('#txtContent').oninput = e => { c.text.content = e.target.value; renderFrame(state.currentTime); renderTimeline(); };
+            body.querySelector('#txtContent').onchange = () => pushHistory();
+            const row2 = document.createElement('div'); row2.className = 'row-2'; row2.style.marginTop = '14px';
+            const colorField = document.createElement('div'); colorField.innerHTML = `<label style="font-size:12.5px;color:var(--txt-dim);display:block;margin-bottom:8px">Цвет текста</label><input type="color" id="txtColor" value="${c.text.color}" style="width:100%;height:46px;border:none;border-radius:10px">`;
+            const strokeField = document.createElement('div'); strokeField.innerHTML = `<label style="font-size:12.5px;color:var(--txt-dim);display:block;margin-bottom:8px">Обводка</label><input type="color" id="txtStroke" value="${c.text.stroke}" style="width:100%;height:46px;border:none;border-radius:10px">`;
+            row2.appendChild(colorField); row2.appendChild(strokeField); body.appendChild(row2);
+            body.querySelector('#txtColor').oninput = e => { c.text.color = e.target.value; renderFrame(state.currentTime); };
+            body.querySelector('#txtColor').onchange = () => pushHistory();
+            body.querySelector('#txtStroke').oninput = e => { c.text.stroke = e.target.value; renderFrame(state.currentTime); };
+            body.querySelector('#txtStroke').onchange = () => pushHistory();
+            body.appendChild(sliderField('Размер', c.text.size, 16, 140, 1, v => c.text.size = v));
+            const shBtn = mkChip('Тень', c.text.useShadow, () => { c.text.useShadow = !c.text.useShadow; pushHistory(); openClipProps(c.id); });
+            const stBtn = mkChip('Обводка вкл', c.text.useStroke, () => { c.text.useStroke = !c.text.useStroke; pushHistory(); openClipProps(c.id); });
+            const br = document.createElement('div'); br.className = 'btn-row'; br.style.marginTop = '8px'; br.appendChild(shBtn); br.appendChild(stBtn); body.appendChild(br);
+        }
+        function renderAudioTab(body, c) {
+            const muteBtn = document.createElement('button'); muteBtn.className = 'chip' + (c.volume === 0 ? ' active' : ''); muteBtn.style.cssText = 'width:100%;justify-content:center;height:46px;margin-bottom:14px';
+            muteBtn.textContent = c.volume === 0 ? '🔇 Звук выключен' : '🔊 Звук включен';
+            muteBtn.onclick = () => { c.volume = c.volume === 0 ? 100 : 0; pushHistory(); openClipProps(c.id); };
+            body.appendChild(muteBtn);
+            body.appendChild(sliderField('Громкость', c.volume, 0, 200, 1, v => c.volume = v));
+            body.appendChild(sliderField('Fade In, сек', c.fadeIn, 0, 5, 0.1, v => c.fadeIn = v));
+            body.appendChild(sliderField('Fade Out, сек', c.fadeOut, 0, 5, 0.1, v => c.fadeOut = v));
+        }
+
+        /* =================== AI (offline) =================== */
+        $('#btnAI').onclick = () => openSheet('Помощник', (body) => {
+            body.innerHTML = '';
+            const items = [
+                ['🎨', 'Авто-цвет выбранного клипа', () => { const f = findClip(state.selectedClipId); if (!f) { toast('Выберите клип', true); return; } aiAutoColorCorrect(f.clip); closeSheet(); }],
+                ['✂️', 'Авторазрез по сценам', () => { closeSheet(); aiAutoCutByScenes(); }],
+                ['💬', activeSpeechRec ? 'Остановить субтитры' : 'Живые субтитры', () => { closeSheet(); aiLiveSubtitles(); }],
+            ];
+            items.forEach(([ic, label, fn]) => { const b = document.createElement('button'); b.className = 'chip'; b.style.cssText = 'width:100%;justify-content:flex-start;height:50px;margin-bottom:10px;gap:10px;font-size:14px'; b.innerHTML = `<span style="font-size:18px">${ic}</span>${label}`; b.onclick = fn; body.appendChild(b); });
+        });
+        function aiAutoColorCorrect(c) {
+            if (!c || !c.el) { toast('Нет изображения', true); return; }
+            const off = document.createElement('canvas'); off.width = 160; off.height = 90; const octx = off.getContext('2d');
+            try { octx.drawImage(c.el, 0, 0, 160, 90); } catch (e) { toast('Не удалось проанализировать', true); return; }
+            const data = octx.getImageData(0, 0, 160, 90).data;
+            let sum = 0, min = 255, max = 0, n = data.length / 4;
+            for (let i = 0; i < data.length; i += 4) { const lum = data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114; sum += lum; if (lum < min) min = lum; if (lum > max) max = lum; }
+            const avg = sum / n;
+            c.color.brightness = clamp(Math.round((128 - avg) / 2), -40, 40);
+            c.color.contrast = clamp(Math.round((255 - (max - min)) / 4), 0, 35);
+            pushHistory(); renderFrame(state.currentTime); toast('Цвет скорректирован');
+        }
+        let activeSpeechRec = null;
+        function updateSubtitleIndicator() {
+            const btn = $('#btnStopSubs');
+            if (activeSpeechRec) btn.classList.add('show'); else btn.classList.remove('show');
+        }
+        function aiLiveSubtitles() {
+            // Остановка: снимаем обработчики ПЕРЕД stop(), чтобы асинхронный onend
+            // не смог перезапустить распознавание после того, как пользователь нажал "стоп" —
+            // именно из-за гонки (onend срабатывает позже, чем мы обнуляем переменную)
+            // раньше субтитры иногда невозможно было остановить.
+            if (activeSpeechRec) {
+                const rec = activeSpeechRec; activeSpeechRec = null;
+                rec.onend = null; rec.onresult = null; rec.onerror = null;
+                try { rec.stop(); } catch (e) { }
+                try { rec.abort(); } catch (e) { }
+                toast('Субтитры остановлены');
+                updateSubtitleIndicator();
+                return;
+            }
+            const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SR) { toast('Не поддерживается в этом браузере', true); return; }
+            const rec = new SR(); rec.lang = 'ru-RU'; rec.continuous = true; rec.interimResults = false;
+            rec.onresult = e => { const text = e.results[e.results.length - 1][0].transcript; const clip = makeClip('text', { dur: 2.5, text }); addClipToTrack(clip, state.currentTime); };
+            rec.onerror = e => { if (e.error !== 'no-speech') toast('Ошибка распознавания', true); };
+            rec.onend = () => { if (activeSpeechRec === rec) { try { rec.start(); } catch (e) { } } };
+            try { rec.start(); } catch (e) { toast('Не удалось запустить микрофон', true); return; }
+            activeSpeechRec = rec; toast('Говорите… Нажмите красную кнопку сверху, чтобы остановить');
+            updateSubtitleIndicator();
+        }
+        $('#btnStopSubs').onclick = () => aiLiveSubtitles();
+        async function aiAutoCutByScenes() {
+            const f = findClip(state.selectedClipId);
+            if (!f || f.clip.kind !== 'video') { toast('Выберите видеоклип', true); return; }
+            toast('Анализ…');
+            const c = f.clip, video = c.el;
+            const off = document.createElement('canvas'); off.width = 64; off.height = 36; const octx = off.getContext('2d');
+            let prev = null; const cuts = []; const step = 0.5; const dur = Math.min(c.sourceDur || video.duration, 40);
+            for (let t = 0; t < dur; t += step) {
+                await new Promise(res => { const onSeek = () => { video.removeEventListener('seeked', onSeek); res(); }; video.addEventListener('seeked', onSeek); try { video.currentTime = t; } catch (e) { res(); } });
+                octx.drawImage(video, 0, 0, 64, 36);
+                const cur = octx.getImageData(0, 0, 64, 36).data;
+                if (prev) { let diff = 0; for (let i = 0; i < cur.length; i += 4) diff += Math.abs(cur[i] - prev[i]); diff /= (64 * 36); if (diff > 18) cuts.push(t); }
+                prev = cur;
+            }
+            if (!cuts.length) { toast('Сцен не найдено', true); return; }
+            cuts.forEach(t => splitClipAt(c.id, c.start + t));
+            toast('Разрезано: ' + cuts.length);
+        }
+
+        /* =================== FILE INPUTS =================== */
+        $('#fileInputMain').onchange = e => { importFiles(e.target.files); e.target.value = ''; };
+        $('#fileInputAudio').onchange = e => { importFiles(e.target.files, 'audio'); e.target.value = ''; };
+        $('#fileInputSticker').onchange = e => {
+            const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+            const url = URL.createObjectURL(f); const id = uid();
+            idbSaveMediaBlob(id, f.name, 'sticker', f);
+            const img = new Image(); img.src = url;
+            img.onload = () => { state.mediaLibrary.push({ id, name: f.name, kind: 'sticker', url, el: img, duration: 4, thumb: url }); toast('Стикер добавлен в библиотеку'); };
+        };
+
+        /* =================== TOP TOOLBAR =================== */
+        $('#btnUndo').onclick = undo; $('#btnRedo').onclick = redo;
+        $('#btnSplit').onclick = () => { if (state.selectedClipId) splitClipAt(state.selectedClipId, state.currentTime); else toast('Выберите клип', true); };
+        $('#btnDup').onclick = () => { if (state.selectedClipId) duplicateClip(state.selectedClipId); else toast('Выберите клип', true); };
+        $('#btnDel').onclick = () => { if (state.selectedClipId) deleteClip(state.selectedClipId); else toast('Выберите клип', true); };
+        function toggleFullscreen() { document.body.classList.toggle('fullscreen-mode'); }
+        $('#btnFullscreen').onclick = toggleFullscreen; $('#btnExitFS').onclick = toggleFullscreen;
+        function applyTheme(t) { document.body.classList.toggle('theme-light', t === 'light'); $('#btnTheme').textContent = t === 'light' ? '☀️' : '🌙'; try { localStorage.setItem('vf_theme', t); } catch (e) { } }
+        $('#btnTheme').onclick = () => applyTheme(document.body.classList.contains('theme-light') ? 'dark' : 'light');
+        (function initTheme() { let saved = 'dark'; try { saved = localStorage.getItem('vf_theme') || 'dark'; } catch (e) { } applyTheme(saved); })();
+
+        $('#btnBg').onclick = () => openSheet('Фон', (body) => {
+            body.innerHTML = `<div class="note">Так заполняются пустые поля по краям, если видео/фото не на весь кадр (например, вертикальное видео в горизонтальном проекте).</div>`;
+            const row = document.createElement('div'); row.className = 'btn-row'; row.style.marginTop = '12px';
+            row.appendChild(mkChip('🌫 Размытие', state.bgMode === 'blur', () => { state.bgMode = 'blur'; pushHistory(); renderFrame(state.currentTime); $('#btnBg').onclick(); }));
+            row.appendChild(mkChip('🎨 Цвет', state.bgMode === 'color', () => { state.bgMode = 'color'; pushHistory(); renderFrame(state.currentTime); $('#btnBg').onclick(); }));
+            body.appendChild(row);
+            if (state.bgMode === 'color') {
+                const colorField = document.createElement('div'); colorField.style.marginTop = '16px';
+                colorField.innerHTML = `<label style="font-size:12.5px;color:var(--txt-dim);display:block;margin-bottom:8px">Цвет фона</label><input type="color" id="bgColorInput" value="${state.bgColor}" style="width:100%;height:46px;border:none;border-radius:10px">`;
+                body.appendChild(colorField);
+                colorField.querySelector('#bgColorInput').oninput = e => { state.bgColor = e.target.value; renderFrame(state.currentTime); };
+                colorField.querySelector('#bgColorInput').onchange = () => pushHistory();
+            }
+        });
+        $('#btnRatio').onclick = () => {
+            let idx = RATIOS.indexOf(state.ratio); idx = (idx + 1) % RATIOS.length; const r = RATIOS[idx];
+            const [w, h] = r.split(':').map(Number); const base = 720;
+            if (w >= h) { state.canvasW = Math.round(base * w / h); state.canvasH = base; if (state.canvasW > 1280) { state.canvasW = 1280; state.canvasH = Math.round(1280 * h / w); } }
+            else { state.canvasH = 1280; state.canvasW = Math.round(1280 * w / h); }
+            state.ratio = r; $('#btnRatio').textContent = r;
+            stage.width = state.canvasW; stage.height = state.canvasH;
+            pushHistory(); renderFrame(state.currentTime);
+        };
+
+        /* =================== EXPORT (optimized, MP4 with WebM fallback) =================== */
+        function detectExportMime() {
+            // Сначала пробуем MP4 (лучше совместим с галереями телефонов), затем WebM как запасной вариант —
+            // на многих десктопных браузерах (и части мобильных) MediaRecorder вообще не умеет писать MP4,
+            // из-за чего раньше экспорт ВСЕГДА падал с ошибкой "браузер не поддерживает".
+            const candidates = [
+                ['video/mp4;codecs=avc1.42E01E,mp4a.40.2', 'mp4'],
+                ['video/mp4;codecs="avc1.42E01E"', 'mp4'],
+                ['video/mp4', 'mp4'],
+                ['video/webm;codecs=vp9,opus', 'webm'],
+                ['video/webm;codecs=vp8,opus', 'webm'],
+                ['video/webm', 'webm'],
+            ];
+            for (const [mime, ext] of candidates) {
+                if (window.MediaRecorder && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(mime)) return { mime, ext };
+            }
+            return null;
+        }
+        $('#btnExport').onclick = async () => {
+            if (isExporting) return;
+            const found = detectExportMime();
+            if (!found) { toast('Этот браузер не поддерживает запись видео. Обновите Chrome.', true); return; }
+            if (!state.tracks.some(t => t.clips.length)) { toast('Сначала добавьте хотя бы один клип', true); return; }
+            openSheet('Качество видео', (body) => {
+                body.innerHTML = `<div class="note">Чем ниже качество — тем быстрее и плавнее рендер, особенно на слабых телефонах.</div>`;
+                const opts = [
+                    [480, '480p', 'Быстрее всего, для слабых телефонов'],
+                    [720, '720p', 'Рекомендуется — баланс качества и скорости'],
+                    [1080, '1080p', 'Лучшее качество, рендерится дольше'],
+                ];
+                opts.forEach(([h, label, sub]) => {
+                    const b = document.createElement('button');
+                    b.className = 'chip'; b.style.cssText = 'width:100%;justify-content:flex-start;flex-direction:column;align-items:flex-start;height:auto;padding:12px 14px;margin-top:10px;gap:2px';
+                    b.innerHTML = `<div style="font-weight:600;font-size:14px">${label}</div><div style="font-size:11.5px;color:var(--txt-faint)">${sub}</div>`;
+                    b.onclick = async () => {
+                        closeSheet();
+                        try { await runExport(found, h); }
+                        catch (err) {
+                            console.error('Export failed:', err);
+                            toast('Ошибка экспорта: ' + (err && err.message ? err.message : 'неизвестная ошибка'), true);
+                            $('#exportOverlay').classList.add('hidden');
+                            isExporting = false;
+                        }
+                    };
+                    body.appendChild(b);
+                });
+            });
+        };
+        // Ждём, пока видео реально доедет до нужного кадра (событие 'seeked'), вместо того чтобы
+        // просто поставить currentTime и надеяться, что к следующему кадру всё готово. На слабых
+        // телефонах декодирование кадра занимает время — без ожидания в запись улетает СТАРЫЙ кадр.
+        function seekAndWait(el, target, timeoutMs = 500) {
+            return new Promise(resolve => {
+                let done = false;
+                const finish = () => { if (done) return; done = true; try { el.removeEventListener('seeked', onSeek); } catch (e) { } clearTimeout(timer); resolve(); };
+                const onSeek = () => finish();
+                el.addEventListener('seeked', onSeek);
+                const timer = setTimeout(finish, timeoutMs);
+                try {
+                    if (typeof el.fastSeek === 'function') el.fastSeek(target); else el.currentTime = target;
+                } catch (e) { finish(); }
+            });
+        }
+        async function runExport({ mime, ext }, targetHeight) {
+            isExporting = true;
+            const overlay = $('#exportOverlay'); overlay.classList.remove('hidden');
+            const fill = $('#exportBarFill'); const pct = $('#exportPct'); fill.style.width = '0%'; pct.textContent = '0%';
+
+            await audioCtxMain.resume().catch(() => { });
+
+            // Разрешение по выбору пользователя (480/720/1080p), сохраняя пропорции проекта.
+            const projRatio = state.canvasW / state.canvasH;
+            let outH = targetHeight || 720, outW = Math.round(outH * projRatio);
+            if (projRatio < 1) { outW = targetHeight || 720; outH = Math.round(outW / projRatio); } // вертикальное видео: ограничиваем по ширине
+            outW -= outW % 2; outH -= outH % 2; // чётная ширина/высота — важно для некоторых encoder'ов
+            const exportCanvas = document.createElement('canvas'); exportCanvas.width = outW; exportCanvas.height = outH;
+            // ВАЖНО: канвас держим прикреплённым к DOM (просто спрятан за пределы экрана), а не полностью
+            // detached. На части мобильных браузеров captureStream() у canvas, который никогда не был
+            // вставлен в документ, отдаёт поток БЕЗ реальных кадров — и получившееся видео оказывается
+            // полностью чёрным от начала до конца, хотя сам canvas рисуется корректно.
+            exportCanvas.style.cssText = 'position:fixed;left:-9999px;top:-9999px;';
+            document.body.appendChild(exportCanvas);
+            const ectx = exportCanvas.getContext('2d', { alpha: false });
+
+            const wasPlaying = state.playing; stopPlayback();
+            const dest = audioCtxMain.createMediaStreamDestination();
+            const connectedGains = []; // чтобы отключить именно ЭТУ ветку записи после экспорта (см. ниже)
+
+            // ВАЖНО: audioCtxMain.createMediaElementSource(el) можно вызвать на одном и том же
+            // <video>/<audio> элементе только ОДИН РАЗ за всё время жизни страницы — после этого
+            // звук элемента навсегда перестаёт идти "напрямую" и течёт только туда, куда мы его
+            // явно подключили в Web Audio графе. Раньше код подключал звук ТОЛЬКО к `dest`
+            // (для записи), но не к колонкам (audioCtxMain.destination) — поэтому после первой
+            // попытки экспорта звук этого клипа пропадал из предпросмотра НАВСЕГДА.
+            // Плюс источник создавался по id клипа, а не по самому элементу: если один и тот же
+            // файл использован в двух клипах (дубликат / повторное добавление из медиатеки),
+            // второй вызов createMediaElementSource на том же элементе кидал исключение.
+            // Теперь: 1 элемент -> максимум 1 источник (WeakMap по el), подключаем И к колонкам,
+            // И к записи — звук больше никогда не "пропадает".
+            state.tracks.forEach(tr => tr.clips.forEach(c => {
+                if (c.el && (c.kind === 'video' || c.kind === 'music' || c.kind === 'voice')) {
+                    try {
+                        let node = mediaSourceByEl.get(c.el);
+                        if (!node) {
+                            const src = audioCtxMain.createMediaElementSource(c.el);
+                            const gain = audioCtxMain.createGain();
+                            src.connect(gain);
+                            gain.connect(audioCtxMain.destination); // сохраняем нормальный звук в превью навсегда
+                            node = { src, gain };
+                            mediaSourceByEl.set(c.el, node);
+                        }
+                        node.gain.connect(dest); // плюс отдельная ветка на запись для текущего экспорта
+                        connectedGains.push(node.gain);
+                    } catch (e) { console.warn('Не удалось подключить аудио-источник клипа', c.name, e); }
+                }
+            }));
+
+            // ГЛАВНАЯ ПРИЧИНА "видео полностью чёрное" И "16 сек влезло в 4 сек":
+            // раньше поток кадров создавался через exportCanvas.captureStream(0) — режим РУЧНОЙ
+            // передачи кадров, где браузер сам НИКОГДА не берёт кадр с канваса, только когда мы
+            // явно вызываем videoTrack.requestFrame(). Этот метод очень ненадёжно/по-разному
+            // поддерживается на мобильных версиях Chrome/WebView — на многих устройствах
+            // requestFrame() тихо ничего не делает (ошибка гасится в try/catch), из-за чего в
+            // поток НИ РАЗУ не попадает ни один реальный кадр, а MediaRecorder всё равно пишет
+            // файл нужной длины, просто целиком из пустых/чёрных кадров.
+            // Исправление: используем ОБЫЧНЫЙ режим — captureStream(30) — браузер сам, автоматически,
+            // 30 раз в секунду берёт то, что реально нарисовано на канвасе. Это стандартный и
+            // надёжно поддерживаемый путь на всех платформах, включая Android.
+            const videoStream = exportCanvas.captureStream(30);
+
+            const combined = new MediaStream([...videoStream.getVideoTracks(), ...dest.stream.getAudioTracks()]);
+            const bitrateByHeight = { 480: 2500000, 720: 4500000, 1080: 8000000 };
+            const videoBitsPerSecond = bitrateByHeight[targetHeight] || 4500000;
+            let recorder;
+            try { recorder = new MediaRecorder(combined, { mimeType: mime, videoBitsPerSecond, audioBitsPerSecond: 160000 }); }
+            catch (e) {
+                try { recorder = new MediaRecorder(combined, { mimeType: mime }); }
+                catch (e2) {
+                    connectedGains.forEach(g => { try { g.disconnect(dest); } catch (e3) { } });
+                    try { exportCanvas.remove(); } catch (e3) { }
+                    overlay.classList.add('hidden'); isExporting = false;
+                    if (wasPlaying) startPlayback();
+                    throw e2;
+                }
+            }
+            let recorderErr = null;
+            recorder.onerror = e => { recorderErr = e.error || e; };
+            const chunks = []; recorder.ondataavailable = e => { if (e.data.size) chunks.push(e.data); };
+
+            const totalDur = state.duration;
+
+            // Готовим самый первый кадр ДО старта записи: доводим все активные в t=0 клипы до
+            // нужной позиции и ждём реального 'seeked', иначе в запись может попасть кадр от
+            // предыдущего положения плейхеда (или чёрный экран на первые доли секунды).
+            state.currentTime = 0; state.playing = true;
+            const initialClips = activeClipsAt(0).filter(en => en.clip.el && (en.clip.kind === 'video' || en.clip.kind === 'music' || en.clip.kind === 'voice'));
+            await Promise.all(initialClips.map(en => seekAndWait(en.clip.el, localTimeFor(en.clip, 0))));
+            renderFrame(0);
+            ectx.clearRect(0, 0, outW, outH); ectx.fillStyle = state.bgColor; ectx.fillRect(0, 0, outW, outH); ectx.drawImage(stage, 0, 0, outW, outH);
+
+            recorder.start(500);
+            // Небольшая пауза, чтобы у автоматического захвата (captureStream(30)) гарантированно
+            // был минимум один валидный кадр на канвасе ДО того, как таймер экспорта начнёт отсчёт —
+            // иначе на некоторых устройствах самый первый закодированный кадр мог быть пустым.
+            await new Promise(r => setTimeout(r, 60));
+            const startAudioTime = audioCtxMain.currentTime;
+
+            await new Promise(resolve => {
+                function exportTick() {
+                    // Время всегда читаем из аппаратных часов Web Audio — оно течёт РОВНО с той же
+                    // скоростью, с какой реально звучит (и пишется) аудио, что бы ни происходило
+                    // на главном потоке с отрисовкой. Так видео и звук физически не могут разойтись,
+                    // а итоговая длина файла всегда равна длине таймлайна, даже если сам рендер кадра
+                    // на слабом телефоне иногда подтормаживает.
+                    const elapsed = audioCtxMain.currentTime - startAudioTime;
+                    const clampedT = Math.min(elapsed, totalDur);
+                    state.currentTime = clampedT;
+                    const p = clamp(clampedT / totalDur, 0, 1);
+                    fill.style.width = (p * 100).toFixed(0) + '%'; pct.textContent = (p * 100).toFixed(0) + '%';
+
+                    renderFrame(clampedT);
+                    ectx.clearRect(0, 0, outW, outH); ectx.fillStyle = state.bgColor; ectx.fillRect(0, 0, outW, outH); ectx.drawImage(stage, 0, 0, outW, outH);
+
+                    if (elapsed >= totalDur) {
+                        state.playing = false;
+                        // небольшой хвост, чтобы последний кусочек звука успел долиться в поток записи
+                        setTimeout(() => { recorder.stop(); }, 300);
+                        resolve(); return;
+                    }
+                    requestAnimationFrame(exportTick);
+                }
+                requestAnimationFrame(exportTick);
+            });
+
+            await new Promise(r => { recorder.onstop = r; });
+            connectedGains.forEach(g => { try { g.disconnect(dest); } catch (e) { } }); // не держим звук подключенным к уже ненужному потоку записи
+            try { videoStream.getTracks().forEach(t => t.stop()); } catch (e) { }
+            try { exportCanvas.remove(); } catch (e) { }
+            if (recorderErr) throw (recorderErr instanceof Error ? recorderErr : new Error('Ошибка MediaRecorder'));
+            if (!chunks.length) throw new Error('Запись пустая — ни одного кадра не сохранилось');
+
+            const blobType = mime.split(';')[0]; // 'video/mp4' или 'video/webm', без codecs=...
+            const blob = new Blob(chunks, { type: blobType });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href = url; a.download = 'video.' + ext; a.style.display = 'none';
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+            // ВАЖНО: раньше ссылка на скачивание нигде не хранилась и объект URL не отзывался —
+            // на части Android-браузеров (особенно если download-ссылка не распознаётся) вкладка
+            // вместо сохранения файла НАВИГИРУЕТ на blob: и начинает ПРОИГРЫВАТЬ готовое видео
+            // прямо в браузере — маме кажется, что "нажал на кнопку — и видео просто запустилось".
+            // Отзываем URL через небольшую паузу (чтобы скачивание успело начаться) — так вкладка
+            // никогда не остаётся на плеере, только сохраняет файл.
+            setTimeout(() => { try { URL.revokeObjectURL(url); } catch (e) { } }, 4000);
+            overlay.classList.add('hidden');
+            isExporting = false;
+            toast('Готово! Видео сохранено в Загрузки ✅');
+            if (wasPlaying) startPlayback();
+        }
+
+        /* =================== NEW PROJECT =================== */
+        // long-press undo button area not used; provide reset via double tap top spacer (kept minimal, no extra clutter button)
+
+        /* =================== INIT =================== */
+        (function init() {
+            renderTracks(); renderTimeline();
+            tryRestoreAutosave().then(restored => { $('#autosaveTag').textContent = restored ? 'Восстановлено' : 'Готово. Версия 4.4'; }).catch(() => { $('#autosaveTag').textContent = 'Автосохранение недоступно'; });
+            checkGalleryHandoff();
+        })();
+
+        /* =================== PWA: офлайн-кэш =================== */
+        // Регистрируем service worker, который один раз (при первом визите с интернетом)
+        // сохраняет страницу целиком, и дальше открывает её вообще без сети — даже в самолёте.
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').catch(() => { });
+            });
+        }
+    </script>
+</body>
+
+</html>
