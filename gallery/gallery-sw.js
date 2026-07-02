@@ -1,7 +1,7 @@
-const CACHE_NAME = 'gallery-cache-v1';
+const CACHE_NAME = 'gallery-cache-v2';
 const ASSETS = [
   './',
-  './gallery.html',
+  './index.html',
   './gallery-manifest.json',
   './gallery-icon-192.png',
   './gallery-icon-512.png',
