@@ -2,7 +2,7 @@
   "name": "Галерея",
   "short_name": "Галерея",
   "description": "Галерея фото и видео, работает офлайн",
-  "start_url": "./gallery.html",
+  "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "any",
